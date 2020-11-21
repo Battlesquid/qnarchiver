@@ -1,10 +1,10 @@
-# qarchiver
+# vex-qarchiver
 
 A tool to retreive and archive questions from the VEX Robotics Q&A.
 
 
 ```js
-import Archiver from "qarchiver";
+import Archiver from "vex-qna-archiver";
 
 const apiKey = "LAIFHLUefhoiFEHOIufhlifehliFEHluifhlUF";
 const archiver = new Archiver(apiKey, "path/to/database");

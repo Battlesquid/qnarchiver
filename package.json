@@ -1,5 +1,5 @@
 {
-  "name": "qarchiver",
+  "name": "vex-qna-archiver",
   "version": "1.0.0",
   "description": "A tool to retreive and archive questions from the VEX Robotics Q&A.",
   "main": "dist/index.js",
