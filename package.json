@@ -1,7 +1,13 @@
 {
   "name": "vex-qna-archiver",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A tool to retreive and archive questions from the VEX Robotics Q&A.",
+  "keywords": [
+    "vex",
+    "vex robotics",
+    "qna",
+    "archive"
+  ],
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
