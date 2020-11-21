@@ -1,4 +1,4 @@
-# vex-qarchiver
+# vex-qna-archiver
 
 A tool to retreive and archive questions from the VEX Robotics Q&A.
 
