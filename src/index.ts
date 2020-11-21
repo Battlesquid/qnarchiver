@@ -1,16 +1,41 @@
-import env from "dotenv";
-env.config({ path: "../.env" });
+import retreiveQuestions from "./modules/fetchPages";
+import ArchiverDatabase from "./database/database"
 
-import { archiveCategory } from "./modules/queryPages";
+export default class Archiver {
 
-const categories: string[] = ["VRC", "VEXU", "VIQC", "VAIC-HS", "VAIC-U", "RADC", "Judging"];
+    private _database;
+    private _apiKey;
 
-(async () => {
-
-    console.time("Archival Processing Time:");
-    for (const category of categories) {
-        console.log("===========", category, "===========")
-        await archiveCategory(category);
+    constructor(apiKey: string, dir?: string) {
+        if (dir)
+            this._database = new ArchiverDatabase(dir);
+        this._apiKey = apiKey;
     }
-    console.timeEnd("Archival Processing Time:");
-})()   
+
+    async processCategory(categories: string | string[], shouldReturn?: boolean) {
+
+        if (Array.isArray(categories)) {
+            const allQuestions = [];
+
+            for (const category of categories) {
+                const questions = await retreiveQuestions(this._apiKey, category);
+
+                if (this._database)
+                    this._database.pushQuestions(questions)
+                if (shouldReturn)
+                    allQuestions.push(...questions);
+            }
+            if (shouldReturn) return allQuestions;
+
+        } else if (typeof categories === "string") {
+            const questions = await retreiveQuestions(this._apiKey, categories);
+
+            if (this._database)
+                this._database.pushQuestions(questions)
+
+            if (shouldReturn) return questions;
+        } else {
+            throw Error("Category must be a string or array.")
+        }
+    }
+}

@@ -1,23 +1,34 @@
 {
-  "name": "qasearch",
+  "name": "qarchiver",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A tool to retreive and archive questions from the VEX Robotics Q&A.",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "run": "npm install && tsc && node dist/index.js"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "author": "battlesqui_d",
   "license": "ISC",
   "dependencies": {
-    "@types/better-sqlite3": "^5.4.1",
-    "@types/cheerio": "^0.22.22",
-    "@types/node-fetch": "^2.5.7",
     "better-sqlite3": "^7.1.1",
     "cheerio": "^1.0.0-rc.3",
     "dotenv": "^8.2.0",
     "node-fetch": "^2.6.1",
-    "sqlite3": "^5.0.0",
-    "typescript": "^4.0.5"
-  }
+    "sqlite3": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Battlesquid/qarchiver.git"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^5.4.1",
+    "@types/cheerio": "^0.22.22",
+    "@types/node-fetch": "^2.5.7",
+    "typescript": "^4.1.2"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "types": "dist/index.d.ts"
 }
