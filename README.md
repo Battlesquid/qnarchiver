@@ -2,7 +2,6 @@
 
 A tool to retreive and archive questions from the VEX Robotics Q&A.
 
-## Example Usage
 
 ```js
 import Archiver from "qarchiver";
@@ -15,3 +14,14 @@ const archiver = new Archiver(apiKey, "path/to/database");
     console.log(data);
 })()
 ```
+
+# Docs
+
+### `new Archiver(apiKey: string, dir?: string)`
+
+Instantiates a new `Archiver` object using a [RobotEvents Api Key](https://www.robotevents.com/api/v2). If `dir` is provided, calling `processCategory` on the archiver will push answered Q&As to an Sqlite database at the given directory.
+<br>
+<br>
+
+#### `processCategory(category: string, shouldReturn: boolean)`
+Goes through the entire Q&A for a specific category across *all* seasons.
