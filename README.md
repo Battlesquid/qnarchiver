@@ -22,9 +22,9 @@ Instantiates a new `Archiver` object using a [RobotEvents Api Key](https://www.r
 <br>
 <br>
 
-#### `processCategory(category: string, shouldReturn?: boolean): QuestionArray | undefined`
+#### `processCategory(category: string | string[], shouldReturn?: boolean): QuestionArray | undefined`
 
-Goes through the entire Q&A for a specific category across _all_ seasons. If a path was specified for the database, retreived questions will be stored. 
+Goes through the entire Q&A for a specific category (or categories using an array) across _all_ seasons. If a path was specified for the database, retreived questions will be stored. 
 \
 \
 By default this method will not return the retreived questions, but you can return them by setting `shouldReturn` to `true`.
