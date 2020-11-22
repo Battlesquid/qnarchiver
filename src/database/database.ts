@@ -8,10 +8,13 @@ export default class DB {
     private _statements: { [key: string]: any };
 
     constructor(dir: string) {
-        if(!fs.existsSync(dir))
-            fs.mkdirSync(dir);
-            
-        this._database = new Database(dir)
+        try {
+            fs.mkdirSync(dir, { recursive: true }); 
+        }
+        catch (e) { /* already exists */ }
+
+        this._database = new Database(dir + "/qna.db")
+
         const query = `
         CREATE VIRTUAL TABLE IF NOT EXISTS QNA USING FTS5 (
             id,

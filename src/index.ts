@@ -1,5 +1,6 @@
 import retreiveQuestions from "./modules/fetchPages";
 import ArchiverDatabase from "./database/database"
+import path from "path";
 
 export default class Archiver {
 
@@ -38,4 +39,4 @@ export default class Archiver {
             throw Error("Category must be a string or array.")
         }
     }
-}
+} 
