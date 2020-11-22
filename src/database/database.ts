@@ -1,4 +1,4 @@
-
+import fs from "fs";
 import Database from "better-sqlite3";
 
 import type { QuestionArray } from "../database/types"
@@ -8,6 +8,9 @@ export default class DB {
     private _statements: { [key: string]: any };
 
     constructor(dir: string) {
+        if(!fs.existsSync(dir))
+            fs.mkdirSync(dir);
+            
         this._database = new Database(dir)
         const query = `
         CREATE VIRTUAL TABLE IF NOT EXISTS QNA USING FTS5 (
