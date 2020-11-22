@@ -1,3 +1,4 @@
+import path from "path"
 import fs from "fs";
 import Database from "better-sqlite3";
 
@@ -9,30 +10,27 @@ export default class DB {
 
     constructor(dir: string) {
         try {
-            fs.mkdirSync(dir, { recursive: true }); 
+            fs.mkdirSync(dir, { recursive: true });
         }
         catch (e) { /* already exists */ }
 
-        this._database = new Database(dir + "/qna.db")
-
+        this._database = new Database(path.join(dir, "qna.db"))
+        console.log(this._database)
         const query = `
         CREATE VIRTUAL TABLE IF NOT EXISTS QNA USING FTS5 (
             id,
             url, 
             question, 
             answer, 
-            season,
+            season, 
             title
         );`
         this._database.prepare(query).run();
 
         this._statements = {
             archiveEntry: this._database.prepare(`INSERT INTO QNA(id, url, title, question, answer, season) VALUES (?, ?, ?, ?, ?, ?)`),
-            entryExists(id: string) {
+            entryExists: (id: string) => {
                 return this._database.prepare(`SELECT * FROM QNA WHERE id MATCH '${id}'`)
-            },
-            matchField(field: "title" | "question" | "answer", content: string) {
-                return this._database.prepare(`SELECT * FROM QNA WHERE ${field} MATCH '${content}'`);
             }
         }
     }

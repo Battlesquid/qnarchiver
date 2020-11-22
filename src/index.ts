@@ -1,16 +1,18 @@
 import retreiveQuestions from "./modules/fetchPages";
 import ArchiverDatabase from "./database/database"
-import path from "path";
+import type { ArchiverOptions } from "./types"
 
 export default class Archiver {
 
     private _database;
     private _apiKey;
+    private _verbose;
 
-    constructor(apiKey: string, dir?: string) {
-        if (dir)
-            this._database = new ArchiverDatabase(dir);
+    constructor(apiKey: string, options: ArchiverOptions) {
+        if (options.dir)
+            this._database = new ArchiverDatabase(options.dir);
         this._apiKey = apiKey;
+        this._verbose = options.verbose || false;
     }
 
     async processCategory(categories: string | string[], shouldReturn?: boolean) {
@@ -19,7 +21,7 @@ export default class Archiver {
             const allQuestions = [];
 
             for (const category of categories) {
-                const questions = await retreiveQuestions(this._apiKey, category);
+                const questions = await retreiveQuestions(this._apiKey, category, this._verbose);
 
                 if (this._database)
                     this._database.pushQuestions(questions)
@@ -29,7 +31,7 @@ export default class Archiver {
             if (shouldReturn) return allQuestions;
 
         } else if (typeof categories === "string") {
-            const questions = await retreiveQuestions(this._apiKey, categories);
+            const questions = await retreiveQuestions(this._apiKey, categories, this._verbose);
 
             if (this._database)
                 this._database.pushQuestions(questions)
@@ -39,4 +41,4 @@ export default class Archiver {
             throw Error("Category must be a string or array.")
         }
     }
-} 
+}
