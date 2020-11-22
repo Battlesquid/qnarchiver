@@ -1,4 +1,4 @@
-import path from "path";
+
 import Database from "better-sqlite3";
 
 import type { QuestionArray } from "../database/types"
@@ -8,7 +8,7 @@ export default class DB {
     private _statements: { [key: string]: any };
 
     constructor(dir: string) {
-        this._database = new Database(path.join(dir, "/qna.db"), { verbose: console.log })
+        this._database = new Database(dir)
         const query = `
         CREATE VIRTUAL TABLE IF NOT EXISTS QNA USING FTS5 (
             id,
@@ -38,8 +38,6 @@ export default class DB {
             const questionExists = this._statements.entryExists(id).get();
 
             if (questionExists) return;
-
-            console.log(`Adding Q&A ${id} to the database...`)
             this._statements.archiveEntry.run(id, url, title, question, answer, season);
         }
     }
