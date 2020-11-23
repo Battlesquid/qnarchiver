@@ -7,15 +7,20 @@ import type { QuestionArray } from "../database/types"
 export default class DB {
     private _database;
     private _statements: { [key: string]: any };
+    _exists = false;
 
     constructor(dir: string) {
+
         try {
-            fs.mkdirSync(dir, { recursive: true });
+            const data = fs.readdirSync(dir);
+            if (data.includes('qna.db')) this._exists = true
+        } catch (e) {
+            console.log("dir doesn't exist, creating now");
+            fs.mkdirSync(dir, { recursive: true })
         }
-        catch (e) { /* already exists */ }
 
         this._database = new Database(path.join(dir, "qna.db"))
-        console.log(this._database)
+
         const query = `
         CREATE VIRTUAL TABLE IF NOT EXISTS QNA USING FTS5 (
             id,

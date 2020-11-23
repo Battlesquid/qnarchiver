@@ -13,9 +13,14 @@ export default class Archiver {
             this._database = new ArchiverDatabase(options.dir);
         this._apiKey = apiKey;
         this._verbose = options.verbose || false;
+
+        console.log(this._database)
     }
 
-    async processCategory(categories: string | string[], shouldReturn?: boolean) {
+    async processCategory(categories: string | string[], forceExecution?: boolean, shouldReturn?: boolean) {
+
+        if (this._database?._exists)
+            if (!forceExecution) return;
 
         if (Array.isArray(categories)) {
             const allQuestions = [];
