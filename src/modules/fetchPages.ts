@@ -59,12 +59,11 @@ const getSeasonQuestions = async (category: string, year: number, verbose: boole
 
         const id = url.match(/QA\/(\d+)/)?.[1] ?? "";
 
-        const title = unleak(unformat($('div.question h4').text()))
+        const title = unleak(unformat($('div.question > h4').text()))
         const question = unleak(unformat($('div.question .content-body').text()));
         const answer = unleak(unformat($('div.question .answer.approved .content-body').text()))
         const season = `${year}-${year + 1}`;
-
-
+        
         questions.push({ id, url, title, question, answer, season });
     }
     return questions;
