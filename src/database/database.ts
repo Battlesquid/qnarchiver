@@ -5,21 +5,20 @@ import Database from "better-sqlite3";
 import type { QuestionArray } from "../database/types"
 
 export default class DB {
-    private _database;
+    private _instance;
     private _statements: { [key: string]: any };
-    _exists = false;
+    _instanceExists = false;
 
     constructor(dir: string) {
 
         try {
             const data = fs.readdirSync(dir);
-            if (data.includes('qna.db')) this._exists = true
+            if (data.includes('qna.db')) this._instanceExists = true
         } catch (e) {
-            console.log("dir doesn't exist, creating now");
             fs.mkdirSync(dir, { recursive: true })
         }
 
-        this._database = new Database(path.join(dir, "qna.db"))
+        this._instance = new Database(path.join(dir, "qna.db"))
 
         const query = `
         CREATE VIRTUAL TABLE IF NOT EXISTS QNA USING FTS5 (
@@ -30,12 +29,12 @@ export default class DB {
             season, 
             title
         );`
-        this._database.prepare(query).run();
+        this._instance.prepare(query).run();
 
         this._statements = {
-            archiveEntry: this._database.prepare(`INSERT INTO QNA(id, url, title, question, answer, season) VALUES (?, ?, ?, ?, ?, ?)`),
+            archiveEntry: this._instance.prepare(`INSERT INTO QNA(id, url, title, question, answer, season) VALUES (?, ?, ?, ?, ?, ?)`),
             entryExists: (id: string) => {
-                return this._database.prepare(`SELECT * FROM QNA WHERE id MATCH '${id}'`)
+                return this._instance.prepare(`SELECT * FROM QNA WHERE id MATCH '${id}'`)
             }
         }
     }
@@ -49,5 +48,9 @@ export default class DB {
             if (questionExists) return;
             this._statements.archiveEntry.run(id, url, title, question, answer, season);
         }
+    }
+
+    closeConnection() {
+        this._instance.close();
     }
 }
