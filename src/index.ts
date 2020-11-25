@@ -15,23 +15,21 @@ export default class Archiver {
         this._verbose = options.verbose || false;
     }
 
-    
-    async processCategory(categories: string | string[], forceArchive?: boolean, shouldReturn?: boolean) {
-        if (this._database?._instanceExists)
-            if (!forceArchive && !shouldReturn) return;
+    async process(categories: string | string[], forceArchive?: boolean, shouldReturn?: boolean) {
+        if (this._database?.instanceExists && !forceArchive && !shouldReturn)
+            return
 
         if (Array.isArray(categories)) {
             const allQuestions = [];
 
             for (const category of categories) {
                 const questions = await retreiveQuestions(this._apiKey, category, this._verbose);
-
-                if (this._database)
-                    this._database.pushQuestions(questions)
-
-                if (shouldReturn)
-                    allQuestions.push(...questions);
+                allQuestions.push(...questions)
             }
+
+            if (this._database)
+                this._database.pushQuestions(allQuestions)
+
             if (shouldReturn)
                 return allQuestions;
 
@@ -46,7 +44,5 @@ export default class Archiver {
         } else {
             throw Error("Category must be a string or array.")
         }
-        if (this._database)
-            this._database.closeConnection();
     }
 }

@@ -11,7 +11,7 @@ const archiver = new Archiver(apiKey, {
 });
 
 (async () => {
-  const data = await archiver.processCategory("Judging", true);
+  const data = await archiver.process("Judging", true);
   console.log(data);
 })();
 ```
@@ -28,7 +28,7 @@ Instantiates a new `Archiver` object using a [RobotEvents Api Key](https://www.r
 <br>
 <br>
 
-#### `processCategory(category: string | string[], force?: boolean, shouldReturn?: boolean): QuestionArray | undefined`
+#### `process(category: string | string[], force?: boolean, shouldReturn?: boolean): QuestionArray | undefined`
 
 Goes through the entire Q&A for a specific category (or categories using an array) across _all_ seasons. If a path was specified for the database, retreived questions will be stored.
 \
