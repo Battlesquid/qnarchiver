@@ -62,10 +62,12 @@ const getSeasonQuestions = async (category: string, year: number, verbose: boole
         const title = unleak(unformat($('div.question > h4').text()))
         const question = unleak(unformat($('div.question .content-body').text()));
         const answer = unleak(unformat($('div.question .answer.approved .content-body').text()))
+        const tags = unleak(unformat($('div.question .tags').children('a').map((i, el) => $(el).text().trim()).get().join(",")))
         const season = `${year}-${year + 1}`;
         
-        questions.push({ id, url, title, question, answer, season });
+        questions.push({ id, url, title, question, answer, season, tags });
     }
+    
     return questions;
 }
 

@@ -25,15 +25,15 @@ export default class DB {
 
         const database = this._openDB();
 
-        const insertQuestion = database.prepare(`INSERT INTO QNA(id, url, title, question, answer, season) VALUES (?, ?, ?, ?, ?, ?)`)
+        const insertQuestion = database.prepare(`INSERT INTO QNA(id, url, title, question, answer, season, tags) VALUES (?, ?, ?, ?, ?, ?, ?)`)
         const findQuestion = database.prepare(`SELECT * FROM QNA WHERE id = ?`);
 
         for (const entry of questions) {
-            const { id, url, title, question, answer, season } = entry;
+            const { id, url, title, question, answer, season, tags } = entry;
             const questionExists = Boolean(findQuestion.get(id));
 
             if (!questionExists)
-                insertQuestion.run(id, url, title, question, answer, season);
+                insertQuestion.run(id, url, title, question, answer, season, tags);
         }
 
         database.close();
@@ -45,11 +45,12 @@ export default class DB {
         const query = `
         CREATE VIRTUAL TABLE IF NOT EXISTS QNA USING FTS5 (
             id,
-            url, 
+            title,
             question, 
             answer, 
             season, 
-            title
+            tags,
+            url
         );`
 
         db.prepare(query).run();
