@@ -20,7 +20,7 @@ const getPageCount = async (url: string) => {
     const response = await fetch(url);
     const html = unleak((await response.text()))
     const $ = load(html);
-    const pageCount = +$('.pagination', '.panel-body').find('li:nth-last-child(2)').text() || 1;
+    const pageCount = +$('.pagination', '.card-body').find('li:nth-last-child(2)').text() || 1;
 
     return pageCount;
 }
@@ -40,8 +40,8 @@ const getSeasonQuestions = async (category: string, year: number, verbose: boole
             const html = unleak((await response.text()));
 
             const $ = load(html);
-            const questions = $('.panel-body').children('h4.title:has(a span)').toArray();
-
+            const questions = $('.card-body').children('h4.title').toArray();
+            // console.log(questions)
             for (const question of questions) {
                 const url = unleak($(question).children('a').attr('href'));
                 urls.push(url);
@@ -64,10 +64,10 @@ const getSeasonQuestions = async (category: string, year: number, verbose: boole
         const answer = unleak(unformat($('div.question .answer.approved .content-body').text()))
         const tags = unleak(unformat($('div.question .tags').children('a').map((i, el) => $(el).text().trim()).get().join(",")))
         const season = `${year}-${year + 1}`;
-        
+
         questions.push({ id, url, title, question, answer, season, tags });
     }
-    
+
     return questions;
 }
 
