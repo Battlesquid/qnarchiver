@@ -60,9 +60,7 @@ export const fetchQuestion = async (url: string): Promise<QuestionData> => {
 
     const regex = /^https:\/\/www\.robotevents\.com\/(?<category>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
     const match = url.match(regex);
-    if (!match)
-        throw Error(`${url} in unexpected format`)
-    if (!match.groups)
+    if (!match?.groups)
         throw Error(`${url} in unrecognized format`)
 
     const id = match.groups.id
@@ -145,20 +143,17 @@ export const scrapeQA = async (queryUrls: string[]): Promise<QuestionData[]> => 
         const urls = $('.card-body h4.title > a')
             .toArray()
             .map(el => $(el).attr('href'))
-            .filter(s => Boolean(s))
+            .filter((s): s is string => Boolean(s))
 
         urls.forEach(url => {
-            if (url) {
-                const regex = /^https:\/\/www\.robotevents\.com\/(?<category>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
-                const match = url.match(regex);
+            const regex = /^https:\/\/www\.robotevents\.com\/(?<category>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
+            const match = url.match(regex);
+            
+            if (!match?.groups)
+                throw Error(`${url} in unrecognized format`)
 
-                if (!match)
-                    throw Error(`${url} in unrecognized format`)
-                if (!match.groups)
-                    throw Error(`${url} in unrecognized format`)
-                if (!questions[match.groups.id])
-                    questions[match.groups.id] = fetchQuestion(url)
-            }
+            if (!questions[match.groups.id])
+                questions[match.groups.id] = fetchQuestion(url)
         })
     }
 
