@@ -1,6 +1,13 @@
 import cheerioModule from "cheerio"
 import fetch from "node-fetch"
-import { SeasonDefaults, SeasonFilters } from ".."
+import {
+    defaultCategories,
+    defaultSeasons,
+    filterSeasons,
+    SeasonFilters,
+    SeasonYear,
+    validateSeason
+} from ".."
 import logger from "../util/logger"
 import { unformat, unleak } from "../util/stringutil"
 
@@ -17,16 +24,7 @@ export interface QuestionData {
     tags: string[]
 }
 
-export enum Category {
-    VRC = "VRC",
-    VEXU = "VEXU",
-    VIQC = "VIQC",
-    Judging = "Judging",
-    RADC = "RADC",
-    VAIC = "VAIC"
-}
-
-// removed due to typing issues with Object.entries and Object.values in resolveQueryUrls
+// removed due to typing issues with Object.entries and Object.values in createQnaUrls
 // type QaParams = `?page=${number}` | ""
 // type QaUrl = `https://robotevents.com/${Category}/${SeasonYears}/QA${QaParams}`
 
@@ -86,25 +84,28 @@ export const fetchQuestion = async (url: string): Promise<QuestionData> => {
     }
 }
 
-export const resolveQueryUrls = async (filters?: SeasonFilters): Promise<string[]> => {
-    let categories: string[], seasons;
+export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> => {
+    const categories: string[] = [];
+    const seasons: SeasonYear[][] = [];
 
-    if (filters) {
-        categories = Object.keys(filters).length ?
-            Object.keys(filters) :
-            Object.values(Category);
-
-        seasons = Object.values(filters).length ?
-            Object.values(filters) :
-            categories.map(c => SeasonDefaults[c as Category])
-
+    if (filters && Object.entries(filters).length) {
+        const entries = Object.entries(filters);
+        for (const [category, entrySeasons] of entries) {
+            entrySeasons.forEach(validateSeason);
+            const validSeasons = await filterSeasons(category, entrySeasons);
+            categories.push(category)
+            seasons.push(validSeasons);
+        }
     } else {
-        categories = Object.values(Category);
-        seasons = categories.map(c => SeasonDefaults[c as Category])
+        for (const category of defaultCategories) {
+            const validSeasons = await filterSeasons(category, defaultSeasons);
+            categories.push(category)
+            seasons.push(validSeasons);
+        }
     }
 
-    logger.verbose(`resolveQueryUrls: Using the categories ${categories}`)
-    logger.verbose(`resolveQueryUrls: Using the seasons ${seasons.map(s => `[${s.join(", ")}]`).join(", ")}`)
+    logger.verbose(`createQnaUrls: Using the categories ${categories.join(", ")}`)
+    logger.verbose(`createQnaUrls: Using the seasons ${seasons.map(s => `[${s.join(", ")}]`).join(", ")}`)
 
     const urls: string[] = [];
     const QA_FIRST_PAGE = 1;
@@ -123,7 +124,7 @@ export const resolveQueryUrls = async (filters?: SeasonFilters): Promise<string[
         }
     }
 
-    logger.verbose(`resolveQueryUrls: Resolved ${urls.length} urls`)
+    logger.verbose(`createQnaUrls: Resolved ${urls.length} urls`)
     return urls;
 }
 

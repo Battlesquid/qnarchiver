@@ -1,3 +1,3 @@
 export * from "./modules/archiver"
 export * from "./modules/scraper"
-export * from "./util/seasons"
+export * from "./modules/seasons"
