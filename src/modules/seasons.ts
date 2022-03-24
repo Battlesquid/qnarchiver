@@ -14,9 +14,13 @@ type Category = (typeof defaultCategories)[number];
 
 export type SeasonYear = `${number}-${number}`
 
-export type SeasonFilters = {
+type CategoryFilters = {
     [k in Category]?: SeasonYear[]
 }
+
+type YearFilters = SeasonYear[]
+    
+export type SeasonFilters = CategoryFilters | YearFilters;
 
 // default season year generation
 const baseYear = 2018;
@@ -27,7 +31,7 @@ for (let year = baseYear; year <= currentYear; year++) {
 }
 
 export { defaultSeasons, defaultCategories };
-  
+
 export const validateSeason = (season: SeasonYear) => {
     const match = season.match(/(?<start>\d{4})-(?<end>\d{4})/)
     if (!match?.groups)
@@ -38,7 +42,7 @@ export const validateSeason = (season: SeasonYear) => {
 }
 
 
-export const filterSeasons = async(category: string, seasons: SeasonYear[]) => {
+export const filterSeasons = async (category: string, seasons: SeasonYear[]) => {
     const results = await Promise.all(
         seasons.map(s => pingQA(category, s))
     )

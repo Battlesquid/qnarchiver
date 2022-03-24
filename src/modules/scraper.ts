@@ -86,19 +86,29 @@ export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> 
     const categories: string[] = [];
     const seasons: SeasonYear[][] = [];
 
-    if (filters && Object.entries(filters).length) {
-        const entries = Object.entries(filters);
-        for (const [category, entrySeasons] of entries) {
-            entrySeasons.forEach(validateSeason);
-            const validSeasons = await filterSeasons(category, entrySeasons);
-            categories.push(category)
-            seasons.push(validSeasons);
-        }
-    } else {
-        for (const category of defaultCategories) {
-            const validSeasons = await filterSeasons(category, defaultSeasons);
-            categories.push(category)
-            seasons.push(validSeasons);
+    if(filters) {
+        if(Array.isArray(filters)) {
+            for(const category of defaultCategories) {
+                const validSeasons = await filterSeasons(category, filters);
+                categories.push(category)
+                seasons.push(validSeasons);
+            }
+        } else {
+            if(Object.entries(filters).length) {
+                const entries = Object.entries(filters);
+                for (const [category, entrySeasons] of entries) {
+                    entrySeasons.forEach(validateSeason);
+                    const validSeasons = await filterSeasons(category, entrySeasons);
+                    categories.push(category)
+                    seasons.push(validSeasons);
+                }
+            } else {
+                for (const category of defaultCategories) {
+                    const validSeasons = await filterSeasons(category, defaultSeasons);
+                    categories.push(category)
+                    seasons.push(validSeasons);
+                }
+            }
         }
     }
 
