@@ -40,7 +40,7 @@ const getPageCount = async (url: string) => {
     const html = unleak((await response.text()))
     const $ = cheerioModule.load(html);
 
-    const el = $('nav .pagination li:nth-last-child(2)');
+    const el = $('nav ul.pagination li:nth-last-child(2)');
     const pageCount = Number.isNaN(parseInt(el.text())) ? 1 : parseInt(el.text());
 
     logger.verbose(`getPageCount: Page count for ${url}: ${pageCount}`);
@@ -64,15 +64,15 @@ export const fetchQuestion = async (url: string): Promise<QuestionData> => {
         throw Error(`${url} in unrecognized format`)
 
     const id = match.groups.id
-    const author = unleak(unformat($('div.question div.details .author').text()))
+    const author = unleak(unformat($('div.author').text()))
     const category = match.groups.category
     const title = unleak(unformat($('div.question > h4').text()))
-    const question = unleak(unformat($('div.question .content-body').text()))
-    const answer = unleak(unformat($('div.question .answer.approved .content-body').text()))
+    const question = unleak(unformat($('div.content-body').text()))
+    const answer = unleak(unformat($('div.answer.approved .content-body').text()))
     const season = match.groups.season
-    const timestamp = unleak(unformat($('div.question div.details .timestamp').text()))
+    const timestamp = unleak(unformat($('div.timestamp').text()))
     const answered = Boolean(answer)
-    const tags = $('div.question .tags a')
+    const tags = $('div.tags a')
         .map((i, el) => unleak($(el).text().trim())).get()
 
     return {
@@ -134,13 +134,14 @@ export const scrapeQA = async (queryUrls: string[]): Promise<QuestionData[]> => 
         logger.verbose(`scrapeQA: Getting questions from ${url}`)
 
         const response = await fetch(url);
+        // TODO - remove complete failure, this is bad
         if (!response.ok)
             throw Error(`Request to ${url} returned ${response.status}:\n${response.statusText}`);
 
         const html = unleak((await response.text()));
         const $ = cheerioModule.load(html);
 
-        const urls = $('.card-body h4.title > a')
+        const urls = $('div.card-body h4.title > a')
             .toArray()
             .map(el => $(el).attr('href'))
             .filter((s): s is string => Boolean(s))
