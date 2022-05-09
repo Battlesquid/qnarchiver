@@ -1,5 +1,5 @@
 import { createQnaUrls, scrapeQA } from "./scraper"
-import { pingQA } from "./seasons"
+import { defaultSeasons, pingQA, SeasonFilters } from "./seasons"
 
 export const getUnansweredQuestions = async () => {
     const year = new Date().getFullYear();
@@ -12,4 +12,13 @@ export const getUnansweredQuestions = async () => {
     const questions = await scrapeQA(urls);
 
     return questions.filter(q => q.answered === false);
+}
+
+export const getQuestions = async(filters?: SeasonFilters) => {
+    const queryUrls = await createQnaUrls(filters);
+    return scrapeQA(queryUrls);
+}
+
+export const getAllQuestions = async() => {
+    return getQuestions(defaultSeasons);
 }

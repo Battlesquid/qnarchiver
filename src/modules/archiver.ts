@@ -2,6 +2,7 @@ import { Configuration, MikroORM } from "@mikro-orm/core";
 import { createQnaUrls, SeasonFilters } from "..";
 import { Question } from "../entities/Question";
 import logger from "../util/logger";
+import { getQuestions } from "./query";
 import { scrapeQA } from "./scraper";
 
 export type ArchiveOptions = {
@@ -19,10 +20,8 @@ export const archive = async (options: ArchiveOptions) => {
     })
     const generator = orm.getSchemaGenerator();
     await generator.updateSchema();
-
-    const queryUrls = await createQnaUrls(options.filters);
-
-    const questions = await scrapeQA(queryUrls)
+    
+    const questions = await getQuestions(options.filters)
 
     logger.verbose(`archive: Received ${questions.length} questions`)
 

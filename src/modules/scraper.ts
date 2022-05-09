@@ -24,10 +24,6 @@ export interface QuestionData {
     tags: string[]
 }
 
-// removed due to typing issues with Object.entries and Object.values in createQnaUrls
-// type QaParams = `?page=${number}` | ""
-// type QaUrl = `https://robotevents.com/${Category}/${SeasonYears}/QA${QaParams}`
-
 const getPageCount = async (url: string) => {
     logger.verbose(`getPageCount: Getting page count for ${url}`)
     const response = await fetch(url);
@@ -49,7 +45,7 @@ const getPageCount = async (url: string) => {
 }
 
 export const fetchQuestion = async (url: string): Promise<QuestionData> => {
-    // logger.verbose(`fetchQuestion: Fetching Q&A at ${url}`);
+    logger.verbose(`fetchQuestion: Fetching ${url}`)
 
     const response = await fetch(url);
     if (!response.ok)
@@ -144,9 +140,10 @@ export const scrapeQA = async (queryUrls: string[]): Promise<QuestionData[]> => 
         logger.verbose(`scrapeQA: Getting questions from ${url}`)
 
         const response = await fetch(url);
-        // TODO - remove complete failure, this is bad
-        if (!response.ok)
-            throw Error(`Request to ${url} returned ${response.status}:\n${response.statusText}`);
+        if (!response.ok) {
+            console.error(`Request to ${url} returned ${response.status}:\n${response.statusText}`);
+            return [];
+        }
 
         const html = unleak((await response.text()));
         const $ = cheerioModule.load(html);

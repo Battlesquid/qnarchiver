@@ -1,8 +1,29 @@
 # qnarchiver
 
-A tool to retreive and archive questions from the VEX Robotics Q&A.
+A set of utilities to retreive and archive questions from the VEX Robotics Q&A.
 
-```js
+## Usage
+
+### Retreiving Questions
+```ts
+import { createQnaUrls, scrapeQA } from "vex-qna-archiver";
+
+(async() => {
+  const questions = await getAllQuestions();
+})();
+```
+
+### Retrieving Unanswered Questions
+```ts
+import { getUnansweredQuestions } from "vex-qna-archiver";
+
+(async () => {
+  const questions = await getUnansweredQuestions();
+})();
+```
+
+### Archiving Questions (experimental)
+```ts
 import { archive } from "vex-qna-archiver";
 
 archive({
@@ -14,7 +35,24 @@ archive({
 });
 ```
 
-# Options
+## Question Structure
+In case you wish to use the question data in a different way (eg, you retreived the questions via `getAllQuestions` or `getUnansweredQuestions`), the format/schema is as follows:
+```json
+{
+  "id": string,
+  "author": string,
+  "category": string,
+  "title": string,
+  "question": string,
+  "answer": string,
+  "season": string,
+  "timestamp": string,
+  "answered": boolean,
+  "tags": string[]
+}
+```
+
+## Options
 
 `dbName`: The name of the database to save to
 
