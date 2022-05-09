@@ -37,7 +37,7 @@ archive({
 
 ## Question Structure
 In case you wish to use the question data in a different way (eg, you retreived the questions via `getAllQuestions` or `getUnansweredQuestions`), the format/schema is as follows:
-```json
+```
 {
   "id": string,
   "author": string,
