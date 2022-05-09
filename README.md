@@ -1,39 +1,84 @@
-# vex-qna-archiver
+# qnarchiver
 
-A tool to retreive and archive questions from the VEX Robotics Q&A.
+A set of utilities to retreive and archive questions from the VEX Robotics Q&A.
 
-```js
-import Archiver from "vex-qna-archiver";
+## Usage
 
-const apiKey = "LAIFHLUefhoiFEHOIufhlifehliFEHluifhlUF";
-const archiver = new Archiver(apiKey, {
-  dir: "../db"
-});
+### Retreiving All Questions
+```ts
+import { getAllQuestions } from "vex-qna-archiver";
 
-(async () => {
-  const data = await archiver.process("Judging", true);
-  console.log(data);
+(async() => {
+  const questions = await getAllQuestions();
 })();
 ```
 
-# Docs
+### Retreiving Questions (filtered)
 
-### `new Archiver(apiKey: string, options?: ArchiverOptions): Archiver`
+```ts
+import { getQuestions } from "vex-qna-archiver";
 
-Instantiates a new `Archiver` object using a [RobotEvents Api Key](https://www.robotevents.com/api/v2). 
+(async() => {
+  // get all questions from a particular season
+  const questions = await getQuestions(["2020-2021"]);
+})();
+```
 
-`options.dir: string`: If specified, the archiver will store the questions in an sqlite database at the given location.
-\
-`options.verbose: boolean`: False by default, setting this to true will log some verbose data as the archiver is going through the Q&As.
-<br>
-<br>
+```ts
+import { getQuestions } from "vex-qna-archiver";
 
-#### `process(category: string | string[], force?: boolean, shouldReturn?: boolean): QuestionArray | undefined`
+(async() => {
+  // get all questions from a particular season and program
+  const questions = await getQuestions({
+    VEXU: ["2020-2021"]
+  });
+})();
+```
 
-Goes through the entire Q&A for a specific category (or categories using an array) across _all_ seasons. If a path was specified for the database, retreived questions will be stored.
-\
-\
-By default, if a database already exists at the given path, the archiver will exit; setting `force` to `true` will force the archiver to run anyways.
-\
-\
-By default this method will not return the retreived questions, but you can return them by setting `shouldReturn` to `true`.
+### Retrieving Unanswered Questions
+```ts
+import { getUnansweredQuestions } from "vex-qna-archiver";
+
+(async () => {
+  const questions = await getUnansweredQuestions();
+})();
+```
+
+### Archiving Questions (experimental)
+```ts
+import { archive } from "vex-qna-archiver";
+
+// will save questions to an sqlite database
+archive({
+  dbName: "QA",
+  dbType: "sqlite",
+  filters: {
+    VRC: ["2020-2021"]
+  }
+});
+```
+
+## Question Structure
+In case you wish to use the question data in a different way (eg, you retreived the questions via `getAllQuestions` or `getUnansweredQuestions`), the format/schema is as follows:
+```
+{
+  "id": string,
+  "author": string,
+  "category": string,
+  "title": string,
+  "question": string,
+  "answer": string,
+  "season": string,
+  "timestamp": string,
+  "answered": boolean,
+  "tags": string[]
+}
+```
+
+## Archiving Options
+
+`dbName`: The name of the database to save to
+
+`dbType`: The type of database to save the data to. Can be `sqlite`, `postgresql`, `mongo`, `mariadb`, or `mysql`.
+
+`filters?`: An option to filter Q&As by season. Excluding this option or leaving it empty will retreive all Q&As.

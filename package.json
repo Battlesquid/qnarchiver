@@ -1,6 +1,6 @@
 {
     "name": "vex-qna-archiver",
-    "version": "1.0.14",
+    "version": "2.0.0-rc1",
     "description": "A tool to retreive and archive questions from the VEX Robotics Q&A.",
     "keywords": [
         "vex",
@@ -11,26 +11,34 @@
     "main": "dist/index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "tsc",
-        "prepare": "npm run build"
+        "build": "npx tsc && npm run lint",
+        "prepare": "npm run build",
+        "lint": "eslint . --ext .ts",
+        "linkbuild": "npx tsc && npm link"
     },
     "author": "battlesqui_d",
     "license": "ISC",
     "dependencies": {
-        "better-sqlite3": "^7.1.1",
+        "@mikro-orm/core": "^4.5.10",
+        "@mikro-orm/postgresql": "^4.5.10",
+        "@mikro-orm/reflection": "^4.5.10",
+        "@mikro-orm/sqlite": "^4.5.10",
         "cheerio": "^1.0.0-rc.3",
-        "dotenv": "^8.2.0",
         "node-fetch": "^2.6.1",
-        "sqlite3": "^5.0.0"
+        "winston": "^3.4.0"
     },
     "repository": {
         "type": "git",
         "url": "https://github.com/Battlesquid/qarchiver.git"
     },
     "devDependencies": {
-        "@types/better-sqlite3": "^5.4.1",
         "@types/cheerio": "^0.22.22",
         "@types/node-fetch": "^2.5.7",
+        "@types/winston": "^2.4.4",
+        "@typescript-eslint/eslint-plugin": "^5.10.1",
+        "@typescript-eslint/parser": "^5.10.1",
+        "eslint": "^8.7.0",
+        "ts-node": "^10.4.0",
         "typescript": "^4.1.2"
     },
     "files": [

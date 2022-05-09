@@ -1,1 +1,0 @@
-export type QuestionArray = { id: string, url: string, title: string, question: string, answer: string, season: string, tags: string }[]
