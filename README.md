@@ -4,12 +4,34 @@ A set of utilities to retreive and archive questions from the VEX Robotics Q&A.
 
 ## Usage
 
-### Retreiving Questions
+### Retreiving All Questions
 ```ts
-import { createQnaUrls, scrapeQA } from "vex-qna-archiver";
+import { getAllQuestions } from "vex-qna-archiver";
 
 (async() => {
   const questions = await getAllQuestions();
+})();
+```
+
+### Retreiving Questions (filtered)
+
+```ts
+import { getQuestions } from "vex-qna-archiver";
+
+(async() => {
+  // get all questions from a particular season
+  const questions = await getQuestions(["2020-2021"]);
+})();
+```
+
+```ts
+import { getQuestions } from "vex-qna-archiver";
+
+(async() => {
+  // get all questions from a particular season and program
+  const questions = await getQuestions({
+    VEXU: ["2020-2021"]
+  });
 })();
 ```
 
@@ -26,6 +48,7 @@ import { getUnansweredQuestions } from "vex-qna-archiver";
 ```ts
 import { archive } from "vex-qna-archiver";
 
+// will save questions to an sqlite database
 archive({
   dbName: "QA",
   dbType: "sqlite",
@@ -52,7 +75,7 @@ In case you wish to use the question data in a different way (eg, you retreived 
 }
 ```
 
-## Options
+## Archiving Options
 
 `dbName`: The name of the database to save to
 
