@@ -9,6 +9,7 @@ import {
     validateSeason
 } from ".."
 import logger from "../util/logger"
+import attempt from "../util/attempt"
 import { unformat, unleak } from "../util/stringutil"
 
 export interface QuestionData {
@@ -132,18 +133,18 @@ export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> 
     return urls;
 }
 
-export const scrapeQA = async (queryUrls: string[], interval: number = 1000): Promise<QuestionData[] | []> => {
+export const scrapeQA = async (queryUrls: string[], interval: number = 1500): Promise<QuestionData[] | []> => {
     const questions: { [k: string]: Promise<QuestionData> } = {};
 
     const sleep = (ms: number) => {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    for(const url of queryUrls) {
+    const handle = async (url: string) => {
         logger.verbose(`scrapeQA: Getting questions from ${url}`);
 
         const response = await fetch(url);
- 
+
         const html = unleak((await response.text()));
         const $ = cheerioModule.load(html);
 
@@ -162,7 +163,18 @@ export const scrapeQA = async (queryUrls: string[], interval: number = 1000): Pr
             if (!questions[match.groups.id])
                 questions[match.groups.id] = fetchQuestion(url);
         })
+    }
 
+    for (const url of queryUrls) {
+        attempt({
+            callback: async () => {
+                handle(url);
+            },
+            onRetry: (attempts: number) => logger.warn(`Attempt ${attempts} failed for fetching ${url}, retrying...`),
+            onFail: () => logger.error(`All attempts to retreive ${url} failed.`),
+            logError: true,
+            maxAttempts: 3
+        });
         await sleep(interval);
     }
 
