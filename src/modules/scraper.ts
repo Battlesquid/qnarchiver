@@ -82,15 +82,15 @@ export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> 
     const categories: string[] = [];
     const seasons: SeasonYear[][] = [];
 
-    if(filters) {
-        if(Array.isArray(filters)) {
-            for(const category of defaultCategories) {
+    if (filters) {
+        if (Array.isArray(filters)) {
+            for (const category of defaultCategories) {
                 const validSeasons = await filterSeasons(category, filters);
                 categories.push(category)
                 seasons.push(validSeasons);
             }
         } else {
-            if(Object.entries(filters).length) {
+            if (Object.entries(filters).length) {
                 const entries = Object.entries(filters);
                 for (const [category, entrySeasons] of entries) {
                     entrySeasons.forEach(validateSeason);
@@ -132,37 +132,38 @@ export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> 
     return urls;
 }
 
-export const scrapeQA = async (queryUrls: string[]): Promise<QuestionData[]> => {
-
+export const scrapeQA = async (queryUrls: string[], interval: number = 1000): Promise<QuestionData[] | []> => {
     const questions: { [k: string]: Promise<QuestionData> } = {};
 
-    for (const url of queryUrls) {
-        logger.verbose(`scrapeQA: Getting questions from ${url}`)
+    const sleep = (ms: number) => {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    for(const url of queryUrls) {
+        logger.verbose(`scrapeQA: Getting questions from ${url}`);
 
         const response = await fetch(url);
-        if (!response.ok) {
-            console.error(`Request to ${url} returned ${response.status}:\n${response.statusText}`);
-            return [];
-        }
-
+ 
         const html = unleak((await response.text()));
         const $ = cheerioModule.load(html);
 
         const urls = $('div.card-body h4.title > a')
             .toArray()
             .map(el => $(el).attr('href'))
-            .filter((s): s is string => Boolean(s))
+            .filter((s): s is string => Boolean(s));
 
         urls.forEach(url => {
             const regex = /^https:\/\/www\.robotevents\.com\/(?<category>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
             const match = url.match(regex);
-            
+
             if (!match?.groups)
-                throw Error(`${url} in unrecognized format`)
+                throw Error(`${url} in unrecognized format`);
 
             if (!questions[match.groups.id])
-                questions[match.groups.id] = fetchQuestion(url)
+                questions[match.groups.id] = fetchQuestion(url);
         })
+
+        await sleep(interval);
     }
 
     return await Promise.all(Object.values(questions));
