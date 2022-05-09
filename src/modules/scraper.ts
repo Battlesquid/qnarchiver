@@ -133,7 +133,7 @@ export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> 
     return urls;
 }
 
-export const scrapeQA = async (queryUrls: string[], interval: number = 1500): Promise<QuestionData[] | []> => {
+export const scrapeQA = async (queryUrls: string[], interval = 1500): Promise<QuestionData[] | []> => {
     const questions: { [k: string]: Promise<QuestionData> } = {};
 
     const sleep = (ms: number) => {

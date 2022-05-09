@@ -1,9 +1,8 @@
 import { Configuration, MikroORM } from "@mikro-orm/core";
-import { createQnaUrls, SeasonFilters } from "..";
+import { SeasonFilters } from "..";
 import { Question } from "../entities/Question";
 import logger from "../util/logger";
 import { getQuestions } from "./query";
-import { scrapeQA } from "./scraper";
 
 export type ArchiveOptions = {
     dbName: string
