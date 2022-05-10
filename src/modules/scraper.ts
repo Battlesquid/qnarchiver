@@ -14,6 +14,7 @@ import { unformat, unleak } from "../util/stringutil"
 
 export interface QuestionData {
     id: string
+    url: string
     author: string
     category: string
     title: string
@@ -73,7 +74,7 @@ export const fetchQuestion = async (url: string): Promise<QuestionData> => {
         .map((i, el) => unleak($(el).text().trim())).get()
 
     return {
-        id, author, category,
+        id, url, author, category,
         title, question, answer,
         season, timestamp, answered, tags
     }

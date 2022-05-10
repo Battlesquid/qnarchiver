@@ -7,6 +7,9 @@ export class Question implements QuestionData {
     id!: string
 
     @Property()
+    url!: string
+    
+    @Property()
     author!: string
 
     @Property()
