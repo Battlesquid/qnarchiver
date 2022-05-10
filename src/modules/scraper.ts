@@ -26,7 +26,9 @@ export interface QuestionData {
     tags: string[]
 }
 
-const getPageCount = async (url: string) => {
+const getPageCount = async (url: string, silent = true) => {
+    logger.transports.forEach(t => t.silent = silent);
+
     logger.verbose(`getPageCount: Getting page count for ${url}`)
     const response = await fetch(url);
 
@@ -46,7 +48,9 @@ const getPageCount = async (url: string) => {
     return pageCount;
 }
 
-export const fetchQuestion = async (url: string): Promise<QuestionData> => {
+export const fetchQuestion = async (url: string, silent = true): Promise<QuestionData> => {
+    logger.transports.forEach(t => t.silent = silent);
+
     logger.verbose(`fetchQuestion: Fetching ${url}`)
 
     const response = await fetch(url);
@@ -80,7 +84,9 @@ export const fetchQuestion = async (url: string): Promise<QuestionData> => {
     }
 }
 
-export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> => {
+export const createQnaUrls = async (filters?: SeasonFilters, silent = true): Promise<string[]> => {
+    logger.transports.forEach(t => t.silent = silent);
+
     const categories: string[] = [];
     const seasons: SeasonYear[][] = [];
 
@@ -134,14 +140,18 @@ export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> 
     return urls;
 }
 
-export const scrapeQA = async (queryUrls: string[], interval = 1500): Promise<QuestionData[] | []> => {
+export const scrapeQA = async (queryUrls: string[], silent = true, interval = 1500): Promise<QuestionData[] | []> => {
+    logger.transports.forEach(t => t.silent = silent);
+
     const questions: { [k: string]: Promise<QuestionData> } = {};
 
     const sleep = (ms: number) => {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    const handle = async (url: string) => {
+    const handle = async (url: string, silent = true) => {
+        logger.transports.forEach(t => t.silent = silent);
+
         logger.verbose(`scrapeQA: Getting questions from ${url}`);
 
         const response = await fetch(url);
@@ -162,14 +172,14 @@ export const scrapeQA = async (queryUrls: string[], interval = 1500): Promise<Qu
                 throw Error(`${url} in unrecognized format`);
 
             if (!questions[match.groups.id])
-                questions[match.groups.id] = fetchQuestion(url);
+                questions[match.groups.id] = fetchQuestion(url, silent);
         })
     }
 
     for (const url of queryUrls) {
         attempt({
             callback: async () => {
-                handle(url);
+                handle(url, silent);
             },
             onRetry: (attempts: number) => logger.warn(`Attempt ${attempts} failed for fetching ${url}, retrying...`),
             onFail: () => logger.error(`All attempts to retreive ${url} failed.`),

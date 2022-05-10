@@ -49,7 +49,9 @@ export const filterSeasons = async (category: string, seasons: SeasonYear[]) => 
     return seasons.filter((s, i) => results[i])
 }
 
-export const pingQA = async (category: string, season: string) => {
+export const pingQA = async (category: string, season: string, silent = true) => {
+    logger.transports.forEach(t => t.silent = silent);
+
     const url = `https://robotevents.com/${category}/${season}/QA`
     const response = await fetch(url);
     logger.verbose(`pingQA: ${url} returned ${response.status}`)

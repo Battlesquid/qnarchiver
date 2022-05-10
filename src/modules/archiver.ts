@@ -10,7 +10,9 @@ export type ArchiveOptions = {
     filters?: SeasonFilters
 }
 
-export const archive = async (options: ArchiveOptions) => {
+export const archive = async (options: ArchiveOptions, silent = true) => {
+    logger.transports.forEach(t => t.silent = silent);
+
     const orm = await MikroORM.init({
         entities: [Question],
         dbName: options.dbName,
