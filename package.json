@@ -1,6 +1,6 @@
 {
     "name": "vex-qna-archiver",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "description": "A tool to retreive and archive questions from the VEX Robotics Q&A.",
     "keywords": [
         "vex",
