@@ -63,6 +63,7 @@ In case you wish to use the question data in a different way (eg, you retreived 
 ```
 {
   "id": string,
+  "url": string,
   "author": string,
   "category": string,
   "title": string,
