@@ -31,6 +31,9 @@ export class Question implements QuestionData {
     timestamp!: string
 
     @Property()
+    timestamp_ms!: number
+
+    @Property()
     answered!: boolean
 
     @Property()

@@ -71,6 +71,7 @@ In case you wish to use the question data in a different way (eg, you retreived 
   "answer": string,
   "season": string,
   "timestamp": string,
+  "timestamp_ms": number
   "answered": boolean,
   "tags": string[]
 }
