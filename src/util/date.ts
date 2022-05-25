@@ -105,5 +105,3 @@ export const ago = (input: AgoString) => {
     }
     return createdDate;
 }
-
-console.info(ago("60 seconds ago").toTimeString())

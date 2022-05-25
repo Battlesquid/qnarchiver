@@ -19,7 +19,7 @@ type CategoryFilters = {
 }
 
 type YearFilters = SeasonYear[]
-    
+
 export type SeasonFilters = CategoryFilters | YearFilters;
 
 // default season year generation
@@ -56,4 +56,12 @@ export const pingQA = async (category: string, season: string, silent = true) =>
     const response = await fetch(url);
     logger.verbose(`pingQA: ${url} returned ${response.status}`)
     return response.ok;
+}
+
+export const getActiveSeason = async (): Promise<SeasonYear> => {
+    const year = new Date().getFullYear();
+    const newSeason = await pingQA("VRC", `${year}-${year + 1}`);
+    return newSeason
+        ? `${year}-${year + 1}`
+        : `${year - 1}-${year}`;
 }
