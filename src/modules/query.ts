@@ -1,13 +1,10 @@
-import { createQnaUrls, scrapeQA } from "./scraper"
-import { defaultSeasons, pingQA, SeasonFilters } from "./seasons"
+import { createQnaUrls, scrapeQA } from "./scraper";
+import { defaultSeasons, getActiveSeason, SeasonFilters } from "./seasons";
 
 export const getUnansweredQuestions = async (silent = true) => {
-    const year = new Date().getFullYear();
-    const newSeason = await pingQA("VRC", `${year}-${year + 1}`);
+    const season = await getActiveSeason();
 
-    const urls = newSeason
-        ? await createQnaUrls([`${year}-${year + 1}`], silent)
-        : await createQnaUrls([`${year - 1}-${year}`], silent)
+    const urls = await createQnaUrls([season], silent)
 
     const questions = await scrapeQA(urls, silent);
 
