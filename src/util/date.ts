@@ -1,6 +1,7 @@
 import ms from "ms";
 
 const units = [
+    "second",
     "minute",
     "hour",
     "day",
@@ -11,17 +12,22 @@ const units = [
 
 export type DateUnits = typeof units[number];
 
-export type AgoString = `${number} ${DateUnits} ago`;
+export type AgoString = `${number} ${DateUnits} ago` | `${number} ${DateUnits}s ago`;
 
 export type FloorOptions = {
     constrainToMonth: boolean
 }
 
+const secondfloor = (date: Date) => {
+    const copy = new Date(date);
+    copy.setMilliseconds(0);
+    return copy;
+}
+
 const minutefloor = (date: Date) => {
     const copy = new Date(date);
     copy.setSeconds(0);
-    copy.setMilliseconds(0);
-    return copy;
+    return secondfloor(copy);
 }
 
 const hourfloor = (date: Date) => {
@@ -58,6 +64,7 @@ const yearfloor = (date: Date) => {
 }
 
 const floordate = (unit: DateUnits, date: Date) => ({
+    "second": secondfloor(date),
     "minute": minutefloor(date),
     "hour": hourfloor(date),
     "day": dayfloor(date),
@@ -98,3 +105,5 @@ export const ago = (input: AgoString) => {
     }
     return createdDate;
 }
+
+console.info(ago("60 seconds ago").toTimeString())
