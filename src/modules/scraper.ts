@@ -1,4 +1,3 @@
-import { ago, AgoString } from './../util/date';
 import cheerioModule from "cheerio"
 import fetch from "node-fetch"
 import {
@@ -75,7 +74,7 @@ export const fetchQuestion = async (url: string, silent = true): Promise<Questio
     const answer = unleak(unformat($('div.answer.approved .content-body').text()))
     const season = match.groups.season
     const timestamp = unleak(unformat($('div.timestamp').text()))
-    const timestamp_ms = ago(timestamp as AgoString).getTime();
+    const timestamp_ms = new Date(timestamp).getTime();
     const answered = Boolean(answer)
     const tags = $('div.tags a')
         .map((i, el) => unleak($(el).text().trim())).get()
