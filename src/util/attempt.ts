@@ -1,5 +1,5 @@
 export interface RetryOptions {
-    callback: () => any
+    callback: () => unknown
     onRetry?: (attempts: number) => void
     onFail?: (attempts: number) => void
     logError?: boolean

@@ -65,7 +65,7 @@ In case you wish to use the question data in a different way (eg, you retreived 
   "id": string,
   "url": string,
   "author": string,
-  "category": string,
+  "program": string,
   "title": string,
   "question": string,
   "answer": string,

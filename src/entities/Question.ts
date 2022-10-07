@@ -13,7 +13,7 @@ export class Question implements QuestionData {
     author!: string
 
     @Property()
-    category!: string
+    program!: string
 
     @Property()
     title!: string

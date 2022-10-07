@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import logger from "../util/logger";
 
-const defaultCategories = [
+const defaultPrograms = [
     "VRC",
     "VEXU",
     "VIQC",
@@ -10,17 +10,17 @@ const defaultCategories = [
     "Judging"
 ] as const;
 
-type Category = (typeof defaultCategories)[number];
+type Program = (typeof defaultPrograms)[number];
 
 export type SeasonYear = `${number}-${number}`
 
-type CategoryFilters = {
-    [k in Category]?: SeasonYear[]
+type ProgramFilters = {
+    [k in Program]?: SeasonYear[]
 }
 
 type YearFilters = SeasonYear[]
 
-export type SeasonFilters = CategoryFilters | YearFilters;
+export type SeasonFilters = ProgramFilters | YearFilters;
 
 // default season year generation
 const baseYear = 2018;
@@ -30,7 +30,7 @@ for (let year = baseYear; year <= currentYear; year++) {
     defaultSeasons.push(`${year}-${year + 1}`)
 }
 
-export { defaultSeasons, defaultCategories };
+export { defaultSeasons, defaultPrograms };
 
 export const validateSeason = (season: SeasonYear) => {
     const match = season.match(/(?<start>\d{4})-(?<end>\d{4})/)
@@ -41,18 +41,17 @@ export const validateSeason = (season: SeasonYear) => {
         throw Error(`${season} is an invalid season range. Check that the order of the years is (start-end).`)
 }
 
-
-export const filterSeasons = async (category: string, seasons: SeasonYear[]) => {
+export const filterSeasons = async (program: string, seasons: SeasonYear[]) => {
     const results = await Promise.all(
-        seasons.map(s => pingQA(category, s))
+        seasons.map(s => pingQA(program, s))
     )
     return seasons.filter((s, i) => results[i])
 }
 
-export const pingQA = async (category: string, season: string, silent = true) => {
+export const pingQA = async (program: string, season: string, silent = true) => {
     logger.transports.forEach(t => t.silent = silent);
 
-    const url = `https://robotevents.com/${category}/${season}/QA`
+    const url = `https://robotevents.com/${program}/${season}/QA`
     const response = await fetch(url);
     logger.verbose(`pingQA: ${url} returned ${response.status}`)
     return response.ok;

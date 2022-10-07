@@ -1,7 +1,7 @@
 import cheerioModule from "cheerio"
 import fetch from "node-fetch"
 import {
-    defaultCategories,
+    defaultPrograms,
     defaultSeasons,
     filterSeasons,
     SeasonFilters,
@@ -16,7 +16,7 @@ export interface QuestionData {
     id: string
     url: string
     author: string
-    category: string
+    program: string
     title: string
     question: string
     answer: string
@@ -61,14 +61,14 @@ export const fetchQuestion = async (url: string, silent = true): Promise<Questio
     const html = unleak((await response.text()));
     const $ = cheerioModule.load(html);
 
-    const regex = /^https:\/\/www\.robotevents\.com\/(?<category>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
+    const regex = /^https:\/\/www\.robotevents\.com\/(?<program>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
     const match = url.match(regex);
     if (!match?.groups)
         throw Error(`${url} in unrecognized format`)
 
     const id = match.groups.id
     const author = unleak(unformat($('div.author').text()))
-    const category = match.groups.category
+    const program = match.groups.program
     const title = unleak(unformat($('div.question > h4').text()))
     const question = unleak(unformat($('div.content-body').text()))
     const answer = unleak(unformat($('div.answer.approved .content-body').text()))
@@ -80,7 +80,7 @@ export const fetchQuestion = async (url: string, silent = true): Promise<Questio
         .map((i, el) => unleak($(el).text().trim())).get()
 
     return {
-        id, url, author, category,
+        id, url, author, program,
         title, question, answer,
         season, timestamp, timestamp_ms,
         answered, tags
@@ -90,51 +90,51 @@ export const fetchQuestion = async (url: string, silent = true): Promise<Questio
 export const createQnaUrls = async (filters?: SeasonFilters, silent = true): Promise<string[]> => {
     logger.transports.forEach(t => t.silent = silent);
 
-    const categories: string[] = [];
+    const programs: string[] = [];
     const seasons: SeasonYear[][] = [];
 
     if (filters) {
         if (Array.isArray(filters)) {
-            for (const category of defaultCategories) {
-                const validSeasons = await filterSeasons(category, filters);
-                categories.push(category)
+            for (const program of defaultPrograms) {
+                const validSeasons = await filterSeasons(program, filters);
+                programs.push(program)
                 seasons.push(validSeasons);
             }
         } else {
             if (Object.entries(filters).length) {
                 const entries = Object.entries(filters);
-                for (const [category, entrySeasons] of entries) {
+                for (const [program, entrySeasons] of entries) {
                     entrySeasons.forEach(validateSeason);
-                    const validSeasons = await filterSeasons(category, entrySeasons);
-                    categories.push(category)
+                    const validSeasons = await filterSeasons(program, entrySeasons);
+                    programs.push(program)
                     seasons.push(validSeasons);
                 }
             } else {
-                for (const category of defaultCategories) {
-                    const validSeasons = await filterSeasons(category, defaultSeasons);
-                    categories.push(category)
+                for (const program of defaultPrograms) {
+                    const validSeasons = await filterSeasons(program, defaultSeasons);
+                    programs.push(program)
                     seasons.push(validSeasons);
                 }
             }
         }
     }
 
-    logger.verbose(`createQnaUrls: Using the categories ${categories.join(", ")}`)
+    logger.verbose(`createQnaUrls: Using the programs ${programs.join(", ")}`)
     logger.verbose(`createQnaUrls: Using the seasons ${seasons.map(s => `[${s.join(", ")}]`).join(", ")}`)
 
     const urls: string[] = [];
     const QA_FIRST_PAGE = 1;
 
     // maybe theres a better way to do this
-    for (let ci = 0; ci < categories.length; ci++) {
-        const category = categories[ci];
+    for (let ci = 0; ci < programs.length; ci++) {
+        const program = programs[ci];
         const seasonList = seasons[ci];
 
         for (const season of seasonList) {
-            const pageCount = await getPageCount(`https://robotevents.com/${category}/${season}/QA`)
+            const pageCount = await getPageCount(`https://robotevents.com/${program}/${season}/QA`)
 
             for (let i = QA_FIRST_PAGE; i <= pageCount; i++) {
-                urls.push(`https://robotevents.com/${category}/${season}/QA?page=${i}`)
+                urls.push(`https://robotevents.com/${program}/${season}/QA?page=${i}`)
             }
         }
     }
@@ -168,7 +168,7 @@ export const scrapeQA = async (queryUrls: string[], silent = true, interval = 15
             .filter((s): s is string => Boolean(s));
 
         urls.forEach(url => {
-            const regex = /^https:\/\/www\.robotevents\.com\/(?<category>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
+            const regex = /^https:\/\/www\.robotevents\.com\/(?<program>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
             const match = url.match(regex);
 
             if (!match?.groups)
