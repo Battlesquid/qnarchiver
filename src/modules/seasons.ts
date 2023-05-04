@@ -1,5 +1,4 @@
 import fetch from "node-fetch";
-import logger from "../util/logger";
 
 const defaultPrograms = [
     "VRC",
@@ -59,11 +58,8 @@ export const filterSeasons = async (program: string, seasons: SeasonYear[]) => {
 }
 
 export const pingQA = async (program: string, season: string, silent = true) => {
-    logger.transports.forEach(t => t.silent = silent);
-
     const url = `https://robotevents.com/${program}/${season}/QA`
     const response = await fetch(url);
-    logger.verbose(`pingQA: ${url} returned ${response.status}`)
     return response.ok;
 }
 

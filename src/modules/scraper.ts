@@ -1,16 +1,8 @@
 import cheerioModule from "cheerio"
 import fetch from "node-fetch"
-import {
-    defaultPrograms,
-    defaultSeasons,
-    filterSeasons,
-    SeasonFilters,
-    SeasonYear,
-    validateSeason
-} from ".."
-import logger from "../util/logger"
+import {defaultPrograms, defaultSeasons, filterSeasons, SeasonFilters, SeasonYear, validateSeason} from ".."
 import attempt from "../util/attempt"
-import { unformat, unleak } from "../util/stringutil"
+import {unformat, unleak} from "../util/stringutil"
 
 export interface QuestionData {
     id: string
@@ -27,33 +19,20 @@ export interface QuestionData {
     tags: string[]
 }
 
-const getPageCount = async (url: string, silent = true) => {
-    logger.transports.forEach(t => t.silent = silent);
-
-    logger.verbose(`getPageCount: Getting page count for ${url}`)
+const getPageCount = async (url: string) => {
     const response = await fetch(url);
 
     if (!response.ok)
         throw Error(`getPageCount: Fetch for ${url} returned ${response.status}:\n${response.statusText}`)
 
-    logger.verbose(`getPageCount: OK response from ${url}`)
-
     const html = unleak((await response.text()))
     const $ = cheerioModule.load(html);
 
     const el = $('nav ul.pagination li:nth-last-child(2)');
-    const pageCount = Number.isNaN(parseInt(el.text())) ? 1 : parseInt(el.text());
-
-    logger.verbose(`getPageCount: Page count for ${url}: ${pageCount}`);
-
-    return pageCount;
+    return Number.isNaN(parseInt(el.text())) ? 1 : parseInt(el.text());
 }
 
-export const fetchQuestion = async (url: string, silent = true): Promise<QuestionData> => {
-    logger.transports.forEach(t => t.silent = silent);
-
-    logger.verbose(`fetchQuestion: Fetching ${url}`)
-
+export const fetchQuestion = async (url: string): Promise<QuestionData> => {
     const response = await fetch(url);
     if (!response.ok)
         throw Error(`fetchQuestion: Fetch for ${url} returned ${response.status}:\n${response.statusText}`)
@@ -87,9 +66,7 @@ export const fetchQuestion = async (url: string, silent = true): Promise<Questio
     }
 }
 
-export const createQnaUrls = async (filters?: SeasonFilters, silent = true): Promise<string[]> => {
-    logger.transports.forEach(t => t.silent = silent);
-
+export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> => {
     const programs: string[] = [];
     const seasons: SeasonYear[][] = [];
 
@@ -119,9 +96,6 @@ export const createQnaUrls = async (filters?: SeasonFilters, silent = true): Pro
         }
     }
 
-    logger.verbose(`createQnaUrls: Using the programs ${programs.join(", ")}`)
-    logger.verbose(`createQnaUrls: Using the seasons ${seasons.map(s => `[${s.join(", ")}]`).join(", ")}`)
-
     const urls: string[] = [];
     const QA_FIRST_PAGE = 1;
 
@@ -139,12 +113,10 @@ export const createQnaUrls = async (filters?: SeasonFilters, silent = true): Pro
         }
     }
 
-    logger.verbose(`createQnaUrls: Resolved ${urls.length} urls`)
     return urls;
 }
 
-export const scrapeQA = async (queryUrls: string[], silent = true, interval = 1500): Promise<QuestionData[] | []> => {
-    logger.transports.forEach(t => t.silent = silent);
+export const scrapeQA = async (queryUrls: string[], interval = 1500): Promise<QuestionData[] | []> => {
 
     const questions: { [k: string]: Promise<QuestionData> } = {};
 
@@ -152,10 +124,7 @@ export const scrapeQA = async (queryUrls: string[], silent = true, interval = 15
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    const handle = async (url: string, silent = true) => {
-        logger.transports.forEach(t => t.silent = silent);
-
-        logger.verbose(`scrapeQA: Getting questions from ${url}`);
+    const handle = async (url: string) => {
 
         const response = await fetch(url);
 
@@ -175,17 +144,17 @@ export const scrapeQA = async (queryUrls: string[], silent = true, interval = 15
                 throw Error(`${url} in unrecognized format`);
 
             if (!questions[match.groups.id])
-                questions[match.groups.id] = fetchQuestion(url, silent);
+                questions[match.groups.id] = fetchQuestion(url);
         })
     }
 
     for (const url of queryUrls) {
         attempt({
             callback: async () => {
-                handle(url, silent);
+                handle(url);
             },
-            onRetry: (attempts: number) => logger.warn(`Attempt ${attempts} failed for fetching ${url}, retrying...`),
-            onFail: () => logger.error(`All attempts to retreive ${url} failed.`),
+            onRetry: (attempts: number) => console.warn(`Attempt ${attempts} failed for fetching ${url}, retrying...`),
+            onFail: () => console.error(`All attempts to retreive ${url} failed.`),
             logError: true,
             maxAttempts: 3
         });

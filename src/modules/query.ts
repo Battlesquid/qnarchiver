@@ -1,21 +1,21 @@
 import { createQnaUrls, scrapeQA } from "./scraper";
 import { defaultSeasons, getActiveSeason, SeasonFilters } from "./seasons";
 
-export const getUnansweredQuestions = async (silent = true) => {
+export const getUnansweredQuestions = async () => {
     const season = await getActiveSeason();
 
-    const urls = await createQnaUrls([season], silent)
+    const urls = await createQnaUrls([season])
 
-    const questions = await scrapeQA(urls, silent);
+    const questions = await scrapeQA(urls);
 
     return questions.filter(q => !q.answered);
 }
 
-export const getQuestions = async(filters?: SeasonFilters, silent = true) => {
-    const queryUrls = await createQnaUrls(filters, silent);
-    return scrapeQA(queryUrls, silent);
+export const getQuestions = async(filters?: SeasonFilters) => {
+    const queryUrls = await createQnaUrls(filters);
+    return scrapeQA(queryUrls);
 }
 
-export const getAllQuestions = async(silent = true) => {
-    return getQuestions(defaultSeasons, silent);
+export const getAllQuestions = async() => {
+    return getQuestions(defaultSeasons);
 }

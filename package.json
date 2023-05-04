@@ -30,8 +30,6 @@
     "@types/cheerio": "^0.22.22",
     "@types/ms": "^0.7.31",
     "@types/node-fetch": "^2.5.7",
-    "@types/winston": "^2.4.4",
-    "winston": "^3.4.0",
     "@typescript-eslint/eslint-plugin": "^5.10.1",
     "@typescript-eslint/parser": "^5.10.1",
     "eslint": "^8.7.0",
