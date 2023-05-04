@@ -1,45 +1,45 @@
 {
-    "name": "vex-qna-archiver",
-    "version": "4.0.0",
-    "description": "A tool to retreive and archive questions from the VEX Robotics Q&A.",
-    "keywords": [
-        "vex",
-        "vex robotics",
-        "qna",
-        "archive"
-    ],
-    "main": "dist/index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 0",
-        "build": "npx tsc && npm run lint",
-        "prepare": "npm run build",
-        "lint": "eslint . --ext .ts",
-        "linkbuild": "npx tsc && npm link"
-    },
-    "author": "battlesqui_d",
-    "license": "ISC",
-    "dependencies": {
-        "cheerio": "^1.0.0-rc.3",
-        "node-fetch": "^2.6.7",
-        "winston": "^3.4.0"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Battlesquid/qarchiver.git"
-    },
-    "devDependencies": {
-        "@types/cheerio": "^0.22.22",
-        "@types/ms": "^0.7.31",
-        "@types/node-fetch": "^2.5.7",
-        "@types/winston": "^2.4.4",
-        "@typescript-eslint/eslint-plugin": "^5.10.1",
-        "@typescript-eslint/parser": "^5.10.1",
-        "eslint": "^8.7.0",
-        "ts-node": "^10.4.0",
-        "typescript": "^4.1.2"
-    },
-    "files": [
-        "dist/**/*"
-    ],
-    "types": "dist/index.d.ts"
+  "name": "vex-qna-archiver",
+  "version": "4.0.0",
+  "description": "A tool to retreive and archive questions from the VEX Robotics Q&A.",
+  "keywords": [
+    "vex",
+    "vex robotics",
+    "qna",
+    "archive"
+  ],
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "build": "npx tsc && npm run lint",
+    "prepare": "npm run build",
+    "lint": "eslint . --ext .ts",
+    "linkbuild": "npx tsc && npm link"
+  },
+  "author": "battlesqui_d",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "node-fetch": "^2.6.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Battlesquid/qarchiver.git"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.22",
+    "@types/ms": "^0.7.31",
+    "@types/node-fetch": "^2.5.7",
+    "@types/winston": "^2.4.4",
+    "winston": "^3.4.0",
+    "@typescript-eslint/eslint-plugin": "^5.10.1",
+    "@typescript-eslint/parser": "^5.10.1",
+    "eslint": "^8.7.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.1.2"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "types": "dist/index.d.ts"
 }
