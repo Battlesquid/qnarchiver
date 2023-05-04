@@ -30,6 +30,16 @@ for (let year = baseYear; year <= currentYear; year++) {
     defaultSeasons.push(`${year}-${year + 1}`)
 }
 
+export const getAllSeasons = async () => {
+    const [start] = (await getActiveSeason()).split("-");
+    const seasons: SeasonYear[] = [];
+    const baseYear = 2018;
+    for (let year = baseYear; year <= parseInt(start); year++) {
+        seasons.push(`${year}-${year + 1}`)
+    }
+    return seasons;
+}
+
 export { defaultSeasons, defaultPrograms };
 
 export const validateSeason = (season: SeasonYear) => {

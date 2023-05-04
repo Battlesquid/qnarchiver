@@ -8,7 +8,7 @@ export const getUnansweredQuestions = async (silent = true) => {
 
     const questions = await scrapeQA(urls, silent);
 
-    return questions.filter(q => q.answered === false);
+    return questions.filter(q => !q.answered);
 }
 
 export const getQuestions = async(filters?: SeasonFilters, silent = true) => {
