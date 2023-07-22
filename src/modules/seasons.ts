@@ -1,72 +1,69 @@
 import fetch from "node-fetch";
+import { DEFAULT_PROGRAMS, ProgramFilters } from "./programs";
 
-const defaultPrograms = [
-    "VRC",
-    "VEXU",
-    "VIQC",
-    "VAIC",
-    "RADC",
-    "Judging"
-] as const;
-
-type Program = (typeof defaultPrograms)[number];
-
-export type SeasonYear = `${number}-${number}`
-
-type ProgramFilters = {
-    [k in Program]?: SeasonYear[]
-}
-
-type YearFilters = SeasonYear[]
-
+export type SeasonYear = `${number}-${number}`;
+type YearFilters = SeasonYear[];
 export type SeasonFilters = ProgramFilters | YearFilters;
 
-// default season year generation
-const baseYear = 2018;
-const currentYear = new Date(Date.now()).getFullYear()
-const defaultSeasons: SeasonYear[] = [];
-for (let year = baseYear; year <= currentYear; year++) {
-    defaultSeasons.push(`${year}-${year + 1}`)
+const currentYear = new Date(Date.now()).getFullYear();
+const DEFAULT_SEASONS: SeasonYear[] = [];
+for (let year = 2018; year <= currentYear; year++) {
+    DEFAULT_SEASONS.push(`${year}-${year + 1}`);
 }
 
-export const getAllSeasons = async () => {
-    const [start] = (await getActiveSeason()).split("-");
-    const seasons: SeasonYear[] = [];
-    const baseYear = 2018;
-    for (let year = baseYear; year <= parseInt(start); year++) {
-        seasons.push(`${year}-${year + 1}`)
+let allSeasons: SeasonYear[] | null = null;
+export const fetchAllSeasons = async (force: boolean) => {
+    if (allSeasons !== null && !force) {
+        return allSeasons;
     }
-    return seasons;
-}
+    const [start] = (await getActiveSeason()).split("-");
+    allSeasons = [];
+    for (let year = 2018; year <= parseInt(start); year++) {
+        allSeasons.push(`${year}-${year + 1}`);
+    }
+    return allSeasons;
+};
 
-export { defaultSeasons, defaultPrograms };
+export { DEFAULT_SEASONS, DEFAULT_PROGRAMS };
 
 export const validateSeason = (season: SeasonYear) => {
-    const match = season.match(/(?<start>\d{4})-(?<end>\d{4})/)
-    if (!match?.groups)
-        throw Error(`${season} in unrecognized format`)
+    const match = season.match(/(?<start>\d{4})-(?<end>\d{4})/);
+    if (!match?.groups) {
+        throw Error(`${season} does not match the format '{year}-{year}'.`);
+    }
 
-    if (parseInt(match.groups.end) - parseInt(match.groups.start) !== 1)
-        throw Error(`${season} is an invalid season range. Check that the order of the years is (start-end).`)
-}
+    if (parseInt(match.groups.end) - parseInt(match.groups.start) !== 1) {
+        throw Error(`${season} does not match the format '{year}-{year + 1}'`);
+    }
+};
 
-export const filterSeasons = async (program: string, seasons: SeasonYear[]) => {
+export const filterInvalidSeasons = async (program: string, seasons: SeasonYear[]) => {
     const results = await Promise.all(
         seasons.map(s => pingQA(program, s))
-    )
-    return seasons.filter((s, i) => results[i])
-}
+    );
+    return seasons.filter((s, i) => results[i]);
+};
 
-export const pingQA = async (program: string, season: string, silent = true) => {
-    const url = `https://robotevents.com/${program}/${season}/QA`
+/**
+ * Checks whether a Q&A forum exists.
+ * @param program The program to check
+ * @param season The season to check
+ * @returns Boolean indicating whether the Q&A forum exists
+ */
+export const pingQA = async (program: string, season: string) => {
+    const url = `https://robotevents.com/${program}/${season}/QA`;
     const response = await fetch(url);
     return response.ok;
-}
+};
 
+/**
+ * Gets the current season.
+ * @returns The current season.
+ */
 export const getActiveSeason = async (): Promise<SeasonYear> => {
     const year = new Date().getFullYear();
     const newSeason = await pingQA("VRC", `${year}-${year + 1}`);
     return newSeason
         ? `${year}-${year + 1}`
         : `${year - 1}-${year}`;
-}
+};
