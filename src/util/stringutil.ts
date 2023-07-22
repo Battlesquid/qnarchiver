@@ -6,6 +6,8 @@ export const unformat = (str: string) => {
         .filter(Boolean)
         .join(""); //remove the empty elements
 
-    if (newStr === undefined) return;
+    if (newStr === undefined) {
+        return;
+    }
     return newStr;
-}
+};
