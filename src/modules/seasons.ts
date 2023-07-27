@@ -5,19 +5,15 @@ export type SeasonYear = `${number}-${number}`;
 type YearFilters = SeasonYear[];
 export type SeasonFilters = ProgramFilters | YearFilters;
 
-const currentYear = new Date(Date.now()).getFullYear();
+const CURRENT_YEAR = new Date(Date.now()).getFullYear();
 const DEFAULT_SEASONS: SeasonYear[] = [];
-for (let year = 2018; year <= currentYear; year++) {
+for (let year = 2018; year <= CURRENT_YEAR; year++) {
     DEFAULT_SEASONS.push(`${year}-${year + 1}`);
 }
 
-let allSeasons: SeasonYear[] | null = null;
-export const fetchAllSeasons = async (force: boolean) => {
-    if (allSeasons !== null && !force) {
-        return allSeasons;
-    }
-    const [start] = (await getActiveSeason()).split("-");
-    allSeasons = [];
+export const fetchAllSeasons = async () => {
+    const allSeasons: SeasonYear[] = [];
+    const [start] = (await getCurrentSeason()).split("-");
     for (let year = 2018; year <= parseInt(start); year++) {
         allSeasons.push(`${year}-${year + 1}`);
     }
@@ -26,22 +22,20 @@ export const fetchAllSeasons = async (force: boolean) => {
 
 export { DEFAULT_SEASONS, DEFAULT_PROGRAMS };
 
-export const validateSeason = (season: SeasonYear) => {
-    const match = season.match(/(?<start>\d{4})-(?<end>\d{4})/);
-    if (!match?.groups) {
-        throw Error(`${season} does not match the format '{year}-{year}'.`);
-    }
+export const validateSeasonsExist = async (program: string, seasons: SeasonYear[]) => {
+    return Promise.all(
+        seasons.map(async season => {
+            const match = season.match(/(?<start>\d{4})-(?<end>\d{4})/);
+            if (!match?.groups) {
+                throw Error(`${season} does not match the format '{year}-{year}'.`);
+            }
 
-    if (parseInt(match.groups.end) - parseInt(match.groups.start) !== 1) {
-        throw Error(`${season} does not match the format '{year}-{year + 1}'`);
-    }
-};
-
-export const filterInvalidSeasons = async (program: string, seasons: SeasonYear[]) => {
-    const results = await Promise.all(
-        seasons.map(s => pingQA(program, s))
+            if (parseInt(match.groups.end) - parseInt(match.groups.start) !== 1) {
+                throw Error(`${season} does not match the format '{year}-{year + 1}'`);
+            }
+            return pingQA(program, season);
+        })
     );
-    return seasons.filter((s, i) => results[i]);
 };
 
 /**
@@ -57,13 +51,11 @@ export const pingQA = async (program: string, season: string) => {
 };
 
 /**
- * Gets the current season.
- * @returns The current season.
+ * Gets the current season
+ * @returns The current season
  */
-export const getActiveSeason = async (): Promise<SeasonYear> => {
+export const getCurrentSeason = async (): Promise<SeasonYear> => {
     const year = new Date().getFullYear();
     const newSeason = await pingQA("VRC", `${year}-${year + 1}`);
-    return newSeason
-        ? `${year}-${year + 1}`
-        : `${year - 1}-${year}`;
+    return newSeason ? `${year}-${year + 1}` : `${year - 1}-${year}`;
 };

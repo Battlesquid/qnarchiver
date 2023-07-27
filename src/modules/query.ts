@@ -1,14 +1,14 @@
-import { createQnaUrls, scrapeQA } from "./scraper";
-import { DEFAULT_SEASONS, getActiveSeason, SeasonFilters } from "./seasons";
+import { getScrapingUrls, scrapeQna } from "./scraper";
+import { DEFAULT_SEASONS, getCurrentSeason, SeasonFilters } from "./seasons";
 
 /**
  * Gets unanswered questions across all programs for the current season.
  * @returns All questions that have not been answered.
  */
 export const getUnansweredQuestions = async () => {
-    const season = await getActiveSeason();
-    const urls = await createQnaUrls([season]);
-    const questions = await scrapeQA(urls);
+    const season = await getCurrentSeason();
+    const urls = await getScrapingUrls([season]);
+    const questions = await scrapeQna(urls);
     return questions.filter(q => !q.answered);
 };
 
@@ -18,8 +18,8 @@ export const getUnansweredQuestions = async () => {
  * @returns All questions that passed the filter.
  */
 export const getQuestions = async (filters?: SeasonFilters) => {
-    const queryUrls = await createQnaUrls(filters);
-    return scrapeQA(queryUrls);
+    const queryUrls = await getScrapingUrls(filters);
+    return scrapeQna(queryUrls);
 };
 
 /**

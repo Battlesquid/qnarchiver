@@ -4,7 +4,6 @@ export const DEFAULT_PROGRAMS = [
     "VRC",
     "VEXU",
     "VIQRC",
-    "VAIC",
     "Judging"
 ] as const;
 

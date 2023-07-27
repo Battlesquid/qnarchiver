@@ -1,32 +1,28 @@
 export interface RetryOptions {
-    callback: () => unknown
+    callback: () => void | Promise<void>
     onRetry?: (attempts: number) => void
-    onFail?: (attempts: number) => void
+    onFail?: (error: unknown) => void
     logError?: boolean
-    maxAttempts: number
+    attempts: number
 }
 
-export default (opts: RetryOptions) => {
+export default async (opts: RetryOptions) => {
     let attempts = 0;
     let attempting = true;
 
     while (attempting) {
         try {
-            opts.callback();
+            await opts.callback();
             attempting = false;
         } catch (e) {
             if (opts.logError) {
                 console.error(e);
             }
-            if (opts.onRetry) {
-                opts.onRetry(attempts);
-            }
+            opts.onRetry?.(attempts);
             attempts++;
-            if (attempts === opts.maxAttempts) {
+            if (attempts === opts.attempts) {
                 attempting = false;
-                if (opts.onFail) {
-                    opts.onFail(attempts);
-                }
+                opts.onFail?.(e);
             }
         }
     }

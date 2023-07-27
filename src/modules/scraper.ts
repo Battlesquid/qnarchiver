@@ -1,10 +1,9 @@
 import cheerioModule from "cheerio";
 import fetch from "node-fetch";
-import { DEFAULT_PROGRAMS, DEFAULT_SEASONS, filterInvalidSeasons, SeasonFilters, SeasonYear, validateSeason } from "..";
+import { DEFAULT_PROGRAMS, DEFAULT_SEASONS, getCurrentSeason, SeasonFilters, SeasonYear, validateSeasonsExist } from "..";
 import attempt from "../util/attempt";
-import { select, unleak } from "../util/scraping";
 
-export interface QuestionData {
+export interface Question {
     /**
      * The question's numerical ID.
      */
@@ -48,12 +47,22 @@ export interface QuestionData {
     /**
      * When this question was asked (in the format DD-Mon-YYYY).
      */
-    asked_timestamp: string;
+    askedTimestamp: string;
 
     /**
-     * `asked_timestamp` in milliseconds.
+     * {@link askedTimestamp} in milliseconds.
      */
-    asked_timestamp_ms: number;
+    askedTimestampMs: number;
+
+    /**
+     * When this question was answered (in the format DD-Mon-YYYY).
+     */
+    answeredTimestamp: string;
+
+    /**
+     * {@link answeredTimestamp} in milliseconds.
+     */
+    answeredTimestampMs: number;
 
     /**
      * Whether the question was answered.
@@ -64,29 +73,80 @@ export interface QuestionData {
      * Tags added to this question.
      */
     tags: string[];
+
+    // /**
+    //  * Attachments added to this question.
+    //  */
+    // attachments: string[];
 }
 
 const SELECTORS = {
-    URL: "div.card-body h4.title > a",
+    URLS: "div.card-body h4.title > a",
     AUTHOR: "div.author",
     TITLE: "div.question > h4",
     QUESTION: "div.content-body",
     ANSWER: "div.answer.approved .content-body",
-    ASKED_TIMESTAMP: "div.timestamp",
+    ASKED_TIMESTAMP: "div.details:nth-child(3) > div:nth-child(2)",
+    ANSWERED_TIMESTAMP: "div.pull-right",
     TAGS: "div.tags a",
-    PAGE_COUNT: "nav ul.pagination li:nth-last-child(2)"
+    PAGE_COUNT: "nav ul.pagination li:nth-last-child(2)",
+    ATTACHMENTS: ".image-gallery"
+} as const;
+
+// https://bugs.chromium.org/p/v8/issues/detail?id=2869
+const unleak = (str: string | undefined): string => (" " + str).slice(1);
+
+const unique = <T>(arr: T[]) => arr.filter((a, i) => arr.indexOf(a) === i);
+
+const unformat = (str: string) => str
+    .split(/\n/g) //split on newline
+    .map(n => n.trim()) //remove whitespace
+    .filter(Boolean) //remove the empty elements
+    .join("");
+
+const loadHTML = async (url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw Error(`Fetch ${url} returned ${response.status}: ${response.statusText}`);
+    }
+    const html = unleak((await response.text()));
+    return cheerioModule.load(html);
+};
+
+const select = ($: cheerio.Root, selector: string | cheerio.Element) => {
+    return unleak(unformat($(selector).text()));
+};
+
+const parseQnaURL = (url: string) => {
+    const regex = /^https:\/\/www\.robotevents\.com\/(?<program>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
+    const match = url.match(regex);
+    if (!match?.groups) {
+        throw Error(`${url} in unrecognized format.`);
+    }
+    return {
+        id: match.groups.id,
+        program: match.groups.program,
+        season: match.groups.season
+    };
+};
+
+type QnaUrlParams = {
+    program: string;
+    season: string;
+    id?: number;
+    page?: number;
+}
+
+const buildQnaURL = (params: QnaUrlParams) => {
+    const { program, season } = params;
+    let url = `https://robotevents.com/${program}/${season}/QA`;
+    url += params.id ? `/${params.id}` : "";
+    url += params.page ? `?page=${params.page}` : "";
+    return url;
 };
 
 const getPageCount = async (url: string) => {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        throw Error(`getPageCount: Fetch for ${url} returned ${response.status}:\n${response.statusText}`);
-    }
-
-    const html = unleak((await response.text()));
-    const $ = cheerioModule.load(html);
-
+    const $ = await loadHTML(url);
     const el = $(SELECTORS.PAGE_COUNT);
     return Number.isNaN(parseInt(el.text())) ? 1 : parseInt(el.text());
 };
@@ -96,71 +156,74 @@ const getPageCount = async (url: string) => {
  * @param url The Q&A url to fetch.
  * @returns Relevant data extracted from the Q&A.
  */
-export const fetchQuestion = async (url: string): Promise<QuestionData> => {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw Error(`fetchQuestion: Fetch for ${url} returned ${response.status}:\n${response.statusText}`);
-    }
+export const fetchQuestion = async (url: string): Promise<Question> => {
+    const $ = await loadHTML(url);
 
-    const html = unleak((await response.text()));
-    const $ = cheerioModule.load(html);
-
-    const regex = /^https:\/\/www\.robotevents\.com\/(?<program>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
-    const match = url.match(regex);
-    if (!match?.groups) {
-        throw Error(`${url} in unrecognized format.`);
-    }
-
-    const id = match.groups.id;
+    const { id, program, season } = parseQnaURL(url);
     const author = select($, SELECTORS.AUTHOR);
-    const program = match.groups.program;
     const title = select($, SELECTORS.TITLE);
     const question = select($, SELECTORS.QUESTION);
     const answer = select($, SELECTORS.ANSWER);
-    const season = match.groups.season;
-    const asked_timestamp = select($, SELECTORS.ASKED_TIMESTAMP);
-    const asked_timestamp_ms = new Date(asked_timestamp).getTime();
+    const askedTimestamp = select($, SELECTORS.ASKED_TIMESTAMP);
+    const askedTimestampMs = new Date(askedTimestamp).getTime();
+    const answeredTimestamp = select($, SELECTORS.ANSWERED_TIMESTAMP);
+    const answeredTimestampMs = new Date(answeredTimestamp).getTime();
     const answered = Boolean(answer);
     const tags = $(SELECTORS.TAGS)
         .map((_i, el) => unleak($(el).text().trim())).get();
 
     return {
-        id, url, author, program,
-        title, question, answer,
-        season, asked_timestamp, asked_timestamp_ms,
-        answered, tags
+        id,
+        url,
+        author,
+        program,
+        title,
+        question,
+        answer,
+        season,
+        askedTimestamp,
+        askedTimestampMs,
+        answeredTimestamp,
+        answeredTimestampMs,
+        answered,
+        tags
     };
 };
 
 
-export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> => {
+export const getScrapingUrls = async (filters?: SeasonFilters): Promise<string[]> => {
     const programs: string[] = [];
     const seasons: SeasonYear[][] = [];
 
     if (filters) {
         if (Array.isArray(filters)) {
+            const uniqueSeasons = unique(filters);
             for (const program of DEFAULT_PROGRAMS) {
-                const validSeasons = await filterInvalidSeasons(program, filters);
+                await validateSeasonsExist(program, uniqueSeasons);
                 programs.push(program);
-                seasons.push(validSeasons);
+                seasons.push(uniqueSeasons);
             }
         } else {
-            if (Object.entries(filters).length) {
-                const entries = Object.entries(filters);
+            const entries = Object.entries(filters);
+            if (entries.length !== 0) {
                 for (const [program, entrySeasons] of entries) {
-                    entrySeasons.forEach(validateSeason);
-                    const validSeasons = await filterInvalidSeasons(program, entrySeasons);
+                    const uniqueSeasons = unique(entrySeasons);
+                    await validateSeasonsExist(program, uniqueSeasons);
                     programs.push(program);
-                    seasons.push(validSeasons);
+                    seasons.push(uniqueSeasons);
                 }
             } else {
                 for (const program of DEFAULT_PROGRAMS) {
-                    const validSeasons = await filterInvalidSeasons(program, DEFAULT_SEASONS);
+                    await validateSeasonsExist(program, DEFAULT_SEASONS);
                     programs.push(program);
-                    seasons.push(validSeasons);
+                    seasons.push(DEFAULT_SEASONS);
                 }
             }
         }
+    } else {
+        const currentSeason = await getCurrentSeason();
+        programs.push(...DEFAULT_PROGRAMS);
+        seasons.push(...new Array(DEFAULT_PROGRAMS.length).fill([currentSeason]));
     }
 
     const urls: string[] = [];
@@ -171,10 +234,10 @@ export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> 
         const seasonList = seasons[ci];
 
         for (const season of seasonList) {
-            const pageCount = await getPageCount(`https://robotevents.com/${program}/${season}/QA`);
+            const pageCount = await getPageCount(buildQnaURL({ program, season }));
 
             for (let i = QA_FIRST_PAGE; i <= pageCount; i++) {
-                urls.push(`https://robotevents.com/${program}/${season}/QA?page=${i}`);
+                urls.push(buildQnaURL({ program, season, page: i }));
             }
         }
     }
@@ -182,48 +245,40 @@ export const createQnaUrls = async (filters?: SeasonFilters): Promise<string[]> 
     return urls;
 };
 
-export const scrapeQA = async (queryUrls: string[], interval = 1500): Promise<QuestionData[] | []> => {
-    const questions: Record<string, Promise<QuestionData>> = {};
+/**
+ * Scrapes the provided Q&As
+ * @param targets A list of Q&A urls to scrape
+ * @param interval The rate at which Q&As are scraped, in milliseconds
+ * @returns A list of {@link Question}s containing the data of the scraped Q&As
+ */
+export const scrapeQna = async (targets: string[], interval = 1500): Promise<Question[] | []> => {
+    const questions: Record<string, Promise<Question>> = {};
 
     const sleep = (ms: number) => {
         return new Promise(resolve => setTimeout(resolve, ms));
     };
 
     const handle = async (url: string) => {
-
-        const response = await fetch(url);
-
-        const html = unleak((await response.text()));
-        const $ = cheerioModule.load(html);
-
-        const urls = $(SELECTORS.URL)
+        const $ = await loadHTML(url);
+        const urls = $(SELECTORS.URLS)
             .toArray()
             .map(el => $(el).attr("href"))
             .filter((s): s is string => Boolean(s));
 
         urls.forEach(url => {
-            const regex = /^https:\/\/www\.robotevents\.com\/(?<program>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
-            const match = url.match(regex);
-
-            if (!match?.groups) {
-                throw Error(`${url} in unrecognized format.`);
-            }
-
-            if (!questions[match.groups.id]) {
-                questions[match.groups.id] = fetchQuestion(url);
+            const { id } = parseQnaURL(url);
+            if (!questions[id]) {
+                questions[id] = fetchQuestion(url);
             }
         });
     };
 
-    for (const url of queryUrls) {
+    for (const url of targets) {
         attempt({
-            callback: async () => {
-                handle(url);
-            },
-            onRetry: (attempts) => console.warn(`Attempt ${attempts} failed for fetching ${url}, retrying...`),
-            onFail: () => console.error(`All attempts to retreive ${url} failed.`),
+            callback: async () => handle(url),
+            onFail: (e) => { throw Error(`Failed to handle ${url}: ${e}`); },
             logError: true,
-            maxAttempts: 3
+            attempts: 3
         });
         await sleep(interval);
     }
