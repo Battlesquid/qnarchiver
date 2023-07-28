@@ -1,13 +1,16 @@
 import cheerioModule from "cheerio";
 import fetch from "node-fetch";
-import { DEFAULT_PROGRAMS, DEFAULT_SEASONS, getCurrentSeason, SeasonFilters, SeasonYear, validateSeasonsExist } from "..";
+import { DEFAULT_PROGRAMS, DEFAULT_SEASONS, SeasonFilters, Season, validateSeasonsExist } from "..";
 import attempt from "../util/attempt";
+import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage, parseQnaUrlWithId } from "./parsing";
+
+export const QUESTION_PROPERTIES: readonly (keyof Question)[] = ["id", "url", "author", "program", "title", "question", "answer", "season", "askedTimestamp", "askedTimestampMs", "answeredTimestamp", "answeredTimestampMs", "answered", "tags"] as const;
 
 export interface Question {
     /**
      * The question's numerical ID.
      */
-    id: string;
+    id: number;
 
     /**
      * The url of the question.
@@ -89,22 +92,21 @@ const SELECTORS = {
     ASKED_TIMESTAMP: "div.details:nth-child(3) > div:nth-child(2)",
     ANSWERED_TIMESTAMP: "div.pull-right",
     TAGS: "div.tags a",
-    PAGE_COUNT: "nav ul.pagination li:nth-last-child(2)",
-    ATTACHMENTS: ".image-gallery"
+    PAGE_COUNT: "nav ul.pagination li:nth-last-child(2)"
 } as const;
 
 // https://bugs.chromium.org/p/v8/issues/detail?id=2869
 const unleak = (str: string | undefined): string => (" " + str).slice(1);
 
-const unique = <T>(arr: T[]) => arr.filter((a, i) => arr.indexOf(a) === i);
+const unique = <T>(arr: T[]): T[] => arr.filter((a, i) => arr.indexOf(a) === i);
 
-const unformat = (str: string) => str
-    .split(/\n/g) //split on newline
-    .map(n => n.trim()) //remove whitespace
-    .filter(Boolean) //remove the empty elements
+const unformat = (str: string): string => str
+    .split(/\n/g)
+    .map(n => n.trim())
+    .filter(Boolean)
     .join("");
 
-const loadHTML = async (url: string) => {
+const loadHTML = async (url: string): Promise<cheerio.Root> => {
     const response = await fetch(url);
     if (!response.ok) {
         throw Error(`Fetch ${url} returned ${response.status}: ${response.statusText}`);
@@ -113,39 +115,11 @@ const loadHTML = async (url: string) => {
     return cheerioModule.load(html);
 };
 
-const select = ($: cheerio.Root, selector: string | cheerio.Element) => {
+const select = ($: cheerio.Root, selector: string | cheerio.Element): string => {
     return unleak(unformat($(selector).text()));
 };
 
-const parseQnaURL = (url: string) => {
-    const regex = /^https:\/\/www\.robotevents\.com\/(?<program>\w+)\/(?<season>\d{4}-\d{4})\/QA\/(?<id>\d+)$/;
-    const match = url.match(regex);
-    if (!match?.groups) {
-        throw Error(`${url} in unrecognized format.`);
-    }
-    return {
-        id: match.groups.id,
-        program: match.groups.program,
-        season: match.groups.season
-    };
-};
-
-type QnaUrlParams = {
-    program: string;
-    season: string;
-    id?: number;
-    page?: number;
-}
-
-const buildQnaURL = (params: QnaUrlParams) => {
-    const { program, season } = params;
-    let url = `https://robotevents.com/${program}/${season}/QA`;
-    url += params.id ? `/${params.id}` : "";
-    url += params.page ? `?page=${params.page}` : "";
-    return url;
-};
-
-const getPageCount = async (url: string) => {
+const getPageCount = async (url: QnaHomeUrl): Promise<number> => {
     const $ = await loadHTML(url);
     const el = $(SELECTORS.PAGE_COUNT);
     return Number.isNaN(parseInt(el.text())) ? 1 : parseInt(el.text());
@@ -156,10 +130,10 @@ const getPageCount = async (url: string) => {
  * @param url The Q&A url to fetch.
  * @returns Relevant data extracted from the Q&A.
  */
-export const fetchQuestion = async (url: string): Promise<Question> => {
+export const fetchQuestion = async (url: QnaIdUrl): Promise<Question> => {
     const $ = await loadHTML(url);
 
-    const { id, program, season } = parseQnaURL(url);
+    const { id, program, season } = parseQnaUrlWithId(url);
     const author = select($, SELECTORS.AUTHOR);
     const title = select($, SELECTORS.TITLE);
     const question = select($, SELECTORS.QUESTION);
@@ -191,9 +165,9 @@ export const fetchQuestion = async (url: string): Promise<Question> => {
 };
 
 
-export const getScrapingUrls = async (filters?: SeasonFilters): Promise<string[]> => {
+export const getScrapingUrls = async (filters?: SeasonFilters): Promise<QnaPageUrl[]> => {
     const programs: string[] = [];
-    const seasons: SeasonYear[][] = [];
+    const seasons: Season[][] = [];
 
     if (filters) {
         if (Array.isArray(filters)) {
@@ -220,24 +194,18 @@ export const getScrapingUrls = async (filters?: SeasonFilters): Promise<string[]
                 }
             }
         }
-    } else {
-        const currentSeason = await getCurrentSeason();
-        programs.push(...DEFAULT_PROGRAMS);
-        seasons.push(...new Array(DEFAULT_PROGRAMS.length).fill([currentSeason]));
     }
 
-    const urls: string[] = [];
-    const QA_FIRST_PAGE = 1;
-
+    const urls: QnaPageUrl[] = [];
     for (let ci = 0; ci < programs.length; ci++) {
         const program = programs[ci];
         const seasonList = seasons[ci];
 
         for (const season of seasonList) {
-            const pageCount = await getPageCount(buildQnaURL({ program, season }));
+            const pageCount = await getPageCount(buildHomeQnaUrl({ program, season }));
 
-            for (let i = QA_FIRST_PAGE; i <= pageCount; i++) {
-                urls.push(buildQnaURL({ program, season, page: i }));
+            for (let page = 1; page <= pageCount; page++) {
+                urls.push(buildQnaUrlWithPage({ program, season, page }));
             }
         }
     }
@@ -246,37 +214,37 @@ export const getScrapingUrls = async (filters?: SeasonFilters): Promise<string[]
 };
 
 /**
- * Scrapes the provided Q&As
- * @param targets A list of Q&A urls to scrape
- * @param interval The rate at which Q&As are scraped, in milliseconds
- * @returns A list of {@link Question}s containing the data of the scraped Q&As
+ * Scrapes the provided Q&A pages
+ * @param pages A list of Q&A pages to scrape
+ * @param interval The rate at which Q&A pages are scraped, in milliseconds
+ * @returns A list of {@link Question}s containing the data of the scraped Q&A pages
  */
-export const scrapeQna = async (targets: string[], interval = 1500): Promise<Question[] | []> => {
+export const scrapeQnaPages = async (pages: QnaPageUrl[], interval = 1500): Promise<Question[]> => {
     const questions: Record<string, Promise<Question>> = {};
 
-    const sleep = (ms: number) => {
+    const sleep = (ms: number): Promise<void> => {
         return new Promise(resolve => setTimeout(resolve, ms));
     };
 
-    const handle = async (url: string) => {
-        const $ = await loadHTML(url);
+    const handle = async (page: QnaPageUrl): Promise<void> => {
+        const $ = await loadHTML(page);
         const urls = $(SELECTORS.URLS)
             .toArray()
             .map(el => $(el).attr("href"))
-            .filter((s): s is string => Boolean(s));
+            .filter((s): s is QnaIdUrl => Boolean(s));
 
         urls.forEach(url => {
-            const { id } = parseQnaURL(url);
+            const { id } = parseQnaUrlWithId(url);
             if (!questions[id]) {
                 questions[id] = fetchQuestion(url);
             }
         });
     };
 
-    for (const url of targets) {
+    for (const page of pages) {
         attempt({
-            callback: async () => handle(url),
-            onFail: (e) => { throw Error(`Failed to handle ${url}: ${e}`); },
+            callback: async () => handle(page),
+            onFail: (e) => { throw Error(`Failed to handle ${page}: ${e}`); },
             logError: true,
             attempts: 3
         });
