@@ -6,7 +6,7 @@ export interface RetryOptions {
     attempts: number
 }
 
-export default async (opts: RetryOptions) => {
+export default async (opts: RetryOptions): Promise<void> => {
     let attempts = 0;
     let attempting = true;
 

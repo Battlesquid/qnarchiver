@@ -21,7 +21,7 @@ export type YearFilters = Season[];
 export type ProgramFilters = {
     [k in Program]?: Season[];
 }
-export type SeasonFilters = ProgramFilters | YearFilters;
+export type QnaFilters = ProgramFilters | YearFilters;
 
 /**
  * Fetches all seasons. More accurate than {@link DEFAULT_SEASONS} because it
@@ -79,7 +79,8 @@ export const pingQA = async (program: string, season: string): Promise<boolean> 
  * @returns The current season
  */
 export const getCurrentSeason = async (): Promise<Season> => {
-    const year = new Date().getFullYear();
-    const newSeason = await pingQA("VRC", `${year}-${year + 1}`);
-    return newSeason ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+    const newSeason = await pingQA("VRC", `${CURRENT_YEAR}-${CURRENT_YEAR + 1}`);
+    return newSeason
+        ? `${CURRENT_YEAR}-${CURRENT_YEAR + 1}`
+        : `${CURRENT_YEAR - 1}-${CURRENT_YEAR}`;
 };

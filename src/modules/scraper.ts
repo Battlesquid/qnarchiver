@@ -1,6 +1,6 @@
 import cheerioModule from "cheerio";
 import fetch from "node-fetch";
-import { DEFAULT_PROGRAMS, DEFAULT_SEASONS, SeasonFilters, Season, validateSeasonsExist } from "..";
+import { DEFAULT_PROGRAMS, DEFAULT_SEASONS, QnaFilters, Season, validateSeasonsExist } from "..";
 import attempt from "../util/attempt";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage, parseQnaUrlWithId } from "./parsing";
 
@@ -164,37 +164,46 @@ export const fetchQuestion = async (url: QnaIdUrl): Promise<Question> => {
     };
 };
 
-
-export const getScrapingUrls = async (filters?: SeasonFilters): Promise<QnaPageUrl[]> => {
+const processFilters = async (filters?: QnaFilters): Promise<[string[], Season[][]]> => {
     const programs: string[] = [];
     const seasons: Season[][] = [];
 
-    if (filters) {
-        if (Array.isArray(filters)) {
-            const uniqueSeasons = unique(filters);
-            for (const program of DEFAULT_PROGRAMS) {
-                await validateSeasonsExist(program, uniqueSeasons);
-                programs.push(program);
-                seasons.push(uniqueSeasons);
-            }
-        } else {
-            const entries = Object.entries(filters);
-            if (entries.length !== 0) {
-                for (const [program, entrySeasons] of entries) {
-                    const uniqueSeasons = unique(entrySeasons);
-                    await validateSeasonsExist(program, uniqueSeasons);
-                    programs.push(program);
-                    seasons.push(uniqueSeasons);
-                }
-            } else {
-                for (const program of DEFAULT_PROGRAMS) {
-                    await validateSeasonsExist(program, DEFAULT_SEASONS);
-                    programs.push(program);
-                    seasons.push(DEFAULT_SEASONS);
-                }
-            }
+    if (!filters) {
+        return [[], []];
+    }
+
+    if (Array.isArray(filters)) {
+        const uniqueSeasons = unique(filters);
+        for (const program of DEFAULT_PROGRAMS) {
+            await validateSeasonsExist(program, uniqueSeasons);
+            programs.push(program);
+            seasons.push(uniqueSeasons);
+        }
+        return [programs, seasons];
+    }
+
+    const entries = Object.entries(filters);
+    if (entries.length !== 0) {
+        for (const [program, entrySeasons] of entries) {
+            const uniqueSeasons = unique(entrySeasons);
+            await validateSeasonsExist(program, uniqueSeasons);
+            programs.push(program);
+            seasons.push(uniqueSeasons);
+        }
+    } else {
+        for (const program of DEFAULT_PROGRAMS) {
+            await validateSeasonsExist(program, DEFAULT_SEASONS);
+            programs.push(program);
+            seasons.push(DEFAULT_SEASONS);
         }
     }
+
+    return [programs, seasons];
+};
+
+export const getScrapingUrls = async (filters?: QnaFilters): Promise<QnaPageUrl[]> => {
+
+    const [programs, seasons] = await processFilters(filters);
 
     const urls: QnaPageUrl[] = [];
     for (let ci = 0; ci < programs.length; ci++) {

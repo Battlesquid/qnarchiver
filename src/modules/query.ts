@@ -1,5 +1,5 @@
 import { Question, getScrapingUrls, scrapeQnaPages } from "./scraper";
-import { DEFAULT_SEASONS, getCurrentSeason, SeasonFilters } from "./seasons";
+import { DEFAULT_SEASONS, getCurrentSeason, QnaFilters } from "./seasons";
 
 /**
  * Utility wrapper around {@link getQuestions} that gets unanswered questions.
@@ -15,7 +15,7 @@ export const getUnansweredQuestions = async (): Promise<Question[]> => {
  * @param filters Optional filters to limit the results retreived. Defaults to filtering by current season.
  * @returns All questions that passed the filter.
  */
-export const getQuestions = async (filters?: SeasonFilters): Promise<Question[]> => {
+export const getQuestions = async (filters?: QnaFilters): Promise<Question[]> => {
     if (filters === undefined) {
         filters = [await getCurrentSeason()];
     }
