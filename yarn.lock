@@ -4434,6 +4434,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pinst@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "pinst@npm:3.0.0"
+  bin:
+    pinst: bin.js
+  checksum: 4ae48a6a60f79c37071233af51b4d91bfc85cfa3c12b66ccda60cdb642b4d14a4ab0cb3587afc55b1f6192cea1772a5e4822026a0d0d3528296edef00cc2d61f
+  languageName: node
+  linkType: hard
+
 "pirates@npm:^4.0.4":
   version: 4.0.6
   resolution: "pirates@npm:4.0.6"
@@ -5365,6 +5374,7 @@ __metadata:
     node-fetch: ^2.6.7
     pino: ^8.14.2
     pino-pretty: ^10.2.0
+    pinst: ^3.0.0
     prettier: 3.0.0
     ts-jest: ^29.1.1
     ts-node: ^10.4.0
