@@ -13,9 +13,12 @@
         "test": "jest",
         "clean": "rm -rf dist/",
         "build": "yarn clean && yarn tsc",
-        "prepare": "yarn build",
+        "prepare": "husky install",
         "lint": "eslint . --ext .ts",
         "linkbuild": "yarn build && yarn link"
+    },
+    "lint-staged": {
+        "**/*": "prettier --write --ignore-unknown"
     },
     "author": "battlesqui_d",
     "license": "ISC",
@@ -38,7 +41,9 @@
         "@typescript-eslint/parser": "^5.10.1",
         "eslint": "^8.7.0",
         "eslint-plugin-sonarjs": "^0.19.0",
+        "husky": "^8.0.3",
         "jest": "^29.6.2",
+        "lint-staged": "^13.2.3",
         "pino-pretty": "^10.2.0",
         "prettier": "3.0.0",
         "ts-jest": "^29.1.1",
