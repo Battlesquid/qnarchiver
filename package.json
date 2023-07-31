@@ -20,6 +20,7 @@
         "postpack": "pinst --enable"
     },
     "lint-staged": {
+        "*.ts": "yarn lint --fix",
         "**/*": "prettier --write --ignore-unknown"
     },
     "author": "battlesqui_d",

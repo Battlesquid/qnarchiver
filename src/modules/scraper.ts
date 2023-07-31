@@ -116,11 +116,12 @@ const unleak = (str: string | undefined): string => (" " + str).slice(1);
 
 const unique = <T>(arr: T[]): T[] => arr.filter((a, i) => arr.indexOf(a) === i);
 
-const unformat = (str: string): string => str
-    .split(/\n/g)
-    .map(n => n.trim())
-    .filter(Boolean)
-    .join("");
+const unformat = (str: string): string =>
+    str
+        .split(/\n/g)
+        .map((n) => n.trim())
+        .filter(Boolean)
+        .join("");
 
 export const loadHTML = async (url: string, logger?: Pick<Logger, "trace">): Promise<cheerio.Root> => {
     logger?.trace(`Fetching HTML from ${url}.`);
@@ -128,7 +129,7 @@ export const loadHTML = async (url: string, logger?: Pick<Logger, "trace">): Pro
     if (!response.ok) {
         throw Error(`Fetch ${url} returned ${response.status}: ${response.statusText}`);
     }
-    const html = unleak((await response.text()));
+    const html = unleak(await response.text());
     return cheerioModule.load(html);
 };
 
@@ -165,7 +166,8 @@ export const fetchQuestion = async (url: QnaIdUrl, logger?: Pick<Logger, "trace"
     const answeredTimestampMs = new Date(answeredTimestamp).getTime();
     const answered = Boolean(answer);
     const tags = $(SELECTORS.TAGS)
-        .map((_i, el) => unleak($(el).text().trim())).get();
+        .map((_i, el) => unleak($(el).text().trim()))
+        .get();
 
     return {
         id,
@@ -224,7 +226,6 @@ const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace
 };
 
 export const getScrapingUrls = async (filters?: QnaFilters, logger?: Pick<Logger, "trace">): Promise<QnaPageUrl[]> => {
-
     const [programs, seasons] = await processFilters(filters, logger);
 
     const urls: QnaPageUrl[] = [];
@@ -257,17 +258,17 @@ export const scrapeQnaPages = async (pages: QnaPageUrl[], logger?: Pick<Logger, 
     const questions: Record<string, Promise<Question>> = {};
 
     const sleep = (ms: number): Promise<void> => {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     };
 
     const handle = async (page: QnaPageUrl): Promise<void> => {
         const $ = await loadHTML(page);
         const urls = $(SELECTORS.URLS)
             .toArray()
-            .map(el => $(el).attr("href"))
+            .map((el) => $(el).attr("href"))
             .filter((s): s is QnaIdUrl => s !== undefined);
 
-        urls.forEach(url => {
+        urls.forEach((url) => {
             const { id } = parseQnaUrlWithId(url);
             if (!questions[id]) {
                 questions[id] = fetchQuestion(url, logger);
@@ -278,7 +279,9 @@ export const scrapeQnaPages = async (pages: QnaPageUrl[], logger?: Pick<Logger, 
     for (const page of pages) {
         attempt({
             callback: async () => handle(page),
-            onFail: (e) => { logger?.trace(`Failed to handle ${page}: ${e}`); },
+            onFail: (e) => {
+                logger?.trace(`Failed to handle ${page}: ${e}`);
+            },
             logger,
             attempts: 3
         });
@@ -287,7 +290,8 @@ export const scrapeQnaPages = async (pages: QnaPageUrl[], logger?: Pick<Logger, 
 
     const results = await Promise.allSettled(Object.values(questions));
     const elapsed = new Date(Date.now() - startTime);
-    const success: Question[] = [], failed: string[] = [];
+    const success: Question[] = [],
+        failed: string[] = [];
     results.forEach((result, i) => {
         if (result.status === "fulfilled") {
             success.push(result.value);
