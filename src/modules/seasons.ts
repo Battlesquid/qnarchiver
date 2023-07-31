@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import { buildHomeQnaUrl } from "./parsing";
+import { Logger } from "pino";
 
 const CURRENT_YEAR = new Date(Date.now()).getFullYear();
 export const DEFAULT_SEASONS: Season[] = [];
@@ -7,12 +8,7 @@ for (let year = 2018; year <= CURRENT_YEAR; year++) {
     DEFAULT_SEASONS.push(`${year}-${year + 1}`);
 }
 
-export const DEFAULT_PROGRAMS = [
-    "VRC",
-    "VEXU",
-    "VIQRC",
-    "Judging"
-] as const;
+export const DEFAULT_PROGRAMS = ["VRC", "VEXU", "VIQRC", "Judging"] as const;
 
 export type Season = `${number}-${number}`;
 export type Program = (typeof DEFAULT_PROGRAMS)[number];
@@ -20,7 +16,7 @@ export type Program = (typeof DEFAULT_PROGRAMS)[number];
 export type YearFilters = Season[];
 export type ProgramFilters = {
     [k in Program]?: Season[];
-}
+};
 export type QnaFilters = ProgramFilters | YearFilters;
 
 /**
@@ -78,9 +74,9 @@ export const pingQA = async (program: string, season: string): Promise<boolean> 
  * Gets the current season
  * @returns The current season
  */
-export const getCurrentSeason = async (): Promise<Season> => {
+export const getCurrentSeason = async (logger?: Pick<Logger, "trace">): Promise<Season> => {
     const newSeason = await pingQA("VRC", `${CURRENT_YEAR}-${CURRENT_YEAR + 1}`);
-    return newSeason
-        ? `${CURRENT_YEAR}-${CURRENT_YEAR + 1}`
-        : `${CURRENT_YEAR - 1}-${CURRENT_YEAR}`;
+    const currentSeason: Season = newSeason ? `${CURRENT_YEAR}-${CURRENT_YEAR + 1}` : `${CURRENT_YEAR - 1}-${CURRENT_YEAR}`;
+    logger?.trace(`Current season: ${currentSeason}`);
+    return currentSeason;
 };

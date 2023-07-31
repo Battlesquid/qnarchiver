@@ -1,9 +1,11 @@
+import { Logger } from "pino";
+
 export interface RetryOptions {
-    callback: () => void | Promise<void>
-    onRetry?: (attempts: number) => void
-    onFail?: (error: unknown) => void
-    logError?: boolean
-    attempts: number
+    callback: () => void | Promise<void>;
+    onRetry?: (attempts: number) => void;
+    onFail?: (error: unknown) => void;
+    logger?: Pick<Logger, "trace">;
+    attempts: number;
 }
 
 export default async (opts: RetryOptions): Promise<void> => {
@@ -15,9 +17,7 @@ export default async (opts: RetryOptions): Promise<void> => {
             await opts.callback();
             attempting = false;
         } catch (e) {
-            if (opts.logError) {
-                console.error(e);
-            }
+            opts.logger?.trace(e);
             opts.onRetry?.(attempts);
             attempts++;
             if (attempts === opts.attempts) {

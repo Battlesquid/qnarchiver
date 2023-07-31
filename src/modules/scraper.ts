@@ -3,8 +3,24 @@ import fetch from "node-fetch";
 import { DEFAULT_PROGRAMS, DEFAULT_SEASONS, QnaFilters, Season, validateSeasonsExist } from "..";
 import attempt from "../util/attempt";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage, parseQnaUrlWithId } from "./parsing";
+import { Logger } from "pino";
 
-export const QUESTION_PROPERTIES: readonly (keyof Question)[] = ["id", "url", "author", "program", "title", "question", "answer", "season", "askedTimestamp", "askedTimestampMs", "answeredTimestamp", "answeredTimestampMs", "answered", "tags"] as const;
+export const QUESTION_PROPERTIES: readonly (keyof Question)[] = [
+    "id",
+    "url",
+    "author",
+    "program",
+    "title",
+    "question",
+    "answer",
+    "season",
+    "askedTimestamp",
+    "askedTimestampMs",
+    "answeredTimestamp",
+    "answeredTimestampMs",
+    "answered",
+    "tags"
+] as const;
 
 export interface Question {
     /**
@@ -106,7 +122,8 @@ const unformat = (str: string): string => str
     .filter(Boolean)
     .join("");
 
-const loadHTML = async (url: string): Promise<cheerio.Root> => {
+export const loadHTML = async (url: string, logger?: Pick<Logger, "trace">): Promise<cheerio.Root> => {
+    logger?.trace(`Fetching HTML from ${url}.`);
     const response = await fetch(url);
     if (!response.ok) {
         throw Error(`Fetch ${url} returned ${response.status}: ${response.statusText}`);
@@ -119,10 +136,12 @@ const select = ($: cheerio.Root, selector: string | cheerio.Element): string => 
     return unleak(unformat($(selector).text()));
 };
 
-const getPageCount = async (url: QnaHomeUrl): Promise<number> => {
+export const getPageCount = async (url: QnaHomeUrl, logger?: Pick<Logger, "trace">): Promise<number> => {
     const $ = await loadHTML(url);
     const el = $(SELECTORS.PAGE_COUNT);
-    return Number.isNaN(parseInt(el.text())) ? 1 : parseInt(el.text());
+    const pageCount = Number.isNaN(parseInt(el.text())) ? 1 : parseInt(el.text());
+    logger?.trace(`Page count for ${url}: ${pageCount}`);
+    return pageCount;
 };
 
 /**
@@ -130,7 +149,9 @@ const getPageCount = async (url: QnaHomeUrl): Promise<number> => {
  * @param url The Q&A url to fetch.
  * @returns Relevant data extracted from the Q&A.
  */
-export const fetchQuestion = async (url: QnaIdUrl): Promise<Question> => {
+export const fetchQuestion = async (url: QnaIdUrl, logger?: Pick<Logger, "trace">): Promise<Question> => {
+    logger?.trace(`Fetching question data from ${url}.`);
+
     const $ = await loadHTML(url);
 
     const { id, program, season } = parseQnaUrlWithId(url);
@@ -164,11 +185,12 @@ export const fetchQuestion = async (url: QnaIdUrl): Promise<Question> => {
     };
 };
 
-const processFilters = async (filters?: QnaFilters): Promise<[string[], Season[][]]> => {
+const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace">): Promise<[string[], Season[][]]> => {
     const programs: string[] = [];
     const seasons: Season[][] = [];
 
     if (!filters) {
+        logger?.trace("No filters provided.");
         return [[], []];
     }
 
@@ -201,9 +223,9 @@ const processFilters = async (filters?: QnaFilters): Promise<[string[], Season[]
     return [programs, seasons];
 };
 
-export const getScrapingUrls = async (filters?: QnaFilters): Promise<QnaPageUrl[]> => {
+export const getScrapingUrls = async (filters?: QnaFilters, logger?: Pick<Logger, "trace">): Promise<QnaPageUrl[]> => {
 
-    const [programs, seasons] = await processFilters(filters);
+    const [programs, seasons] = await processFilters(filters, logger);
 
     const urls: QnaPageUrl[] = [];
     for (let ci = 0; ci < programs.length; ci++) {
@@ -219,6 +241,8 @@ export const getScrapingUrls = async (filters?: QnaFilters): Promise<QnaPageUrl[
         }
     }
 
+    logger?.trace(`Created ${urls.length} urls that satisfy the provided filters.`);
+
     return urls;
 };
 
@@ -228,7 +252,8 @@ export const getScrapingUrls = async (filters?: QnaFilters): Promise<QnaPageUrl[
  * @param interval The rate at which Q&A pages are scraped, in milliseconds
  * @returns A list of {@link Question}s containing the data of the scraped Q&A pages
  */
-export const scrapeQnaPages = async (pages: QnaPageUrl[], interval = 1500): Promise<Question[]> => {
+export const scrapeQnaPages = async (pages: QnaPageUrl[], logger?: Pick<Logger, "trace">, interval = 1500): Promise<Question[]> => {
+    const startTime = Date.now();
     const questions: Record<string, Promise<Question>> = {};
 
     const sleep = (ms: number): Promise<void> => {
@@ -240,12 +265,12 @@ export const scrapeQnaPages = async (pages: QnaPageUrl[], interval = 1500): Prom
         const urls = $(SELECTORS.URLS)
             .toArray()
             .map(el => $(el).attr("href"))
-            .filter((s): s is QnaIdUrl => Boolean(s));
+            .filter((s): s is QnaIdUrl => s !== undefined);
 
         urls.forEach(url => {
             const { id } = parseQnaUrlWithId(url);
             if (!questions[id]) {
-                questions[id] = fetchQuestion(url);
+                questions[id] = fetchQuestion(url, logger);
             }
         });
     };
@@ -253,12 +278,25 @@ export const scrapeQnaPages = async (pages: QnaPageUrl[], interval = 1500): Prom
     for (const page of pages) {
         attempt({
             callback: async () => handle(page),
-            onFail: (e) => { throw Error(`Failed to handle ${page}: ${e}`); },
-            logError: true,
+            onFail: (e) => { logger?.trace(`Failed to handle ${page}: ${e}`); },
+            logger,
             attempts: 3
         });
         await sleep(interval);
     }
 
-    return await Promise.all(Object.values(questions));
+    const results = await Promise.allSettled(Object.values(questions));
+    const elapsed = new Date(Date.now() - startTime);
+    const success: Question[] = [], failed: string[] = [];
+    results.forEach((result, i) => {
+        if (result.status === "fulfilled") {
+            success.push(result.value);
+        } else {
+            failed.push(Object.keys(questions)[i]);
+        }
+    });
+
+    logger?.trace(`${success.length} succeeded, ${failed.length} failed.`);
+    logger?.trace(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
+    return success;
 };

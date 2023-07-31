@@ -1,16 +1,8 @@
 {
     "root": true,
     "parser": "@typescript-eslint/parser",
-    "plugins": [
-        "@typescript-eslint",
-        "sonarjs"
-    ],
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:sonarjs/recommended"
-    ],
+    "plugins": ["@typescript-eslint", "sonarjs"],
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/eslint-recommended", "plugin:@typescript-eslint/recommended", "plugin:sonarjs/recommended"],
     "rules": {
         "semi": "error",
         "curly": "error",

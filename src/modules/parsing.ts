@@ -31,7 +31,7 @@ export const parseQnaUrlWithId = (url: QnaIdUrl): QnaUrlIdParams => {
     return {
         program: parsed.program,
         season: parsed.season,
-        id: parseInt(parsed.id),
+        id: parseInt(parsed.id)
     };
 };
 
@@ -40,7 +40,7 @@ export const parseQnaUrlWithPage = (url: QnaPageUrl): QnaUrlPageParams => {
     return {
         program: parsed.program,
         season: parsed.season,
-        page: parseInt(parsed.page),
+        page: parseInt(parsed.page)
     };
 };
 
