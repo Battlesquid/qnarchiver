@@ -1,5 +1,5 @@
 import { Logger } from "pino";
-import { Question, getScrapingUrls, scrapeQnaPages } from "./scraper";
+import { Question, getScrapingUrls, scrapeQnaPages } from "./generators";
 import { DEFAULT_SEASONS, getCurrentSeason, QnaFilters } from "./seasons";
 
 /**

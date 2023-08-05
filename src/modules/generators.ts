@@ -123,14 +123,14 @@ const unformat = (str: string): string =>
         .filter(Boolean)
         .join("");
 
-export const loadHTML = async (url: string, logger?: Pick<Logger, "trace">): Promise<cheerio.Root> => {
+export const loadHTML = async (url: string, logger?: Pick<Logger, "trace">): Promise<string> => {
     logger?.trace(`Fetching HTML from ${url}.`);
     const response = await fetch(url);
     if (!response.ok) {
         throw Error(`Fetch ${url} returned ${response.status}: ${response.statusText}`);
     }
-    const html = unleak(await response.text());
-    return cheerioModule.load(html);
+    return unleak(await response.text());
+    // return cheerioModule.load(html);
 };
 
 const select = ($: cheerio.Root, selector: string | cheerio.Element): string => {
@@ -138,11 +138,16 @@ const select = ($: cheerio.Root, selector: string | cheerio.Element): string => 
 };
 
 export const getPageCount = async (url: QnaHomeUrl, logger?: Pick<Logger, "trace">): Promise<number> => {
-    const $ = await loadHTML(url);
-    const el = $(SELECTORS.PAGE_COUNT);
-    const pageCount = Number.isNaN(parseInt(el.text())) ? 1 : parseInt(el.text());
+    const html = await loadHTML(url, logger);
+    const pageCount = extractPageCount(html);
     logger?.trace(`Page count for ${url}: ${pageCount}`);
     return pageCount;
+};
+
+export const extractPageCount = (html: string): number => {
+    const $ = cheerioModule.load(html);
+    const el = $(SELECTORS.PAGE_COUNT);
+    return Number.isNaN(parseInt(el.text())) ? 1 : parseInt(el.text());
 };
 
 /**
@@ -153,9 +158,21 @@ export const getPageCount = async (url: QnaHomeUrl, logger?: Pick<Logger, "trace
 export const fetchQuestion = async (url: QnaIdUrl, logger?: Pick<Logger, "trace">): Promise<Question> => {
     logger?.trace(`Fetching question data from ${url}.`);
 
-    const $ = await loadHTML(url);
-
+    const html = await loadHTML(url);
     const { id, program, season } = parseQnaUrlWithId(url);
+    const data = extractQuestionData(html);
+
+    return {
+        id,
+        url,
+        program,
+        season,
+        ...data
+    };
+};
+
+export const extractQuestionData = (html: string): Omit<Question, "id" | "url" | "season" | "program"> => {
+    const $ = cheerioModule.load(html);
     const author = select($, SELECTORS.AUTHOR);
     const title = select($, SELECTORS.TITLE);
     const question = select($, SELECTORS.QUESTION);
@@ -170,14 +187,10 @@ export const fetchQuestion = async (url: QnaIdUrl, logger?: Pick<Logger, "trace"
         .get();
 
     return {
-        id,
-        url,
         author,
-        program,
         title,
         question,
         answer,
-        season,
         askedTimestamp,
         askedTimestampMs,
         answeredTimestamp,
@@ -187,7 +200,7 @@ export const fetchQuestion = async (url: QnaIdUrl, logger?: Pick<Logger, "trace"
     };
 };
 
-const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace">): Promise<[string[], Season[][]]> => {
+export const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace">): Promise<[string[], Season[][]]> => {
     const programs: string[] = [];
     const seasons: Season[][] = [];
 
@@ -227,7 +240,7 @@ const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace
 
 export const getScrapingUrls = async (filters?: QnaFilters, logger?: Pick<Logger, "trace">): Promise<QnaPageUrl[]> => {
     const [programs, seasons] = await processFilters(filters, logger);
-
+    logger?.trace({ programs, seasons });
     const urls: QnaPageUrl[] = [];
     for (let ci = 0; ci < programs.length; ci++) {
         const program = programs[ci];
@@ -242,7 +255,7 @@ export const getScrapingUrls = async (filters?: QnaFilters, logger?: Pick<Logger
         }
     }
 
-    logger?.trace(`Created ${urls.length} urls that satisfy the provided filters.`);
+    logger?.trace({ urls }, `Created ${urls.length} urls that satisfy the provided filters.`);
 
     return urls;
 };
@@ -262,7 +275,8 @@ export const scrapeQnaPages = async (pages: QnaPageUrl[], logger?: Pick<Logger, 
     };
 
     const handle = async (page: QnaPageUrl): Promise<void> => {
-        const $ = await loadHTML(page);
+        const html = await loadHTML(page);
+        const $ = cheerioModule.load(html);
         const urls = $(SELECTORS.URLS)
             .toArray()
             .map((el) => $(el).attr("href"))
@@ -278,7 +292,10 @@ export const scrapeQnaPages = async (pages: QnaPageUrl[], logger?: Pick<Logger, 
 
     for (const page of pages) {
         attempt({
-            callback: async () => handle(page),
+            callback: async () => {
+                const html = await loadHTML(page);
+                handle(page);
+            },
             onFail: (e) => {
                 logger?.trace(`Failed to handle ${page}: ${e}`);
             },
