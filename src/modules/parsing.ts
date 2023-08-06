@@ -1,8 +1,6 @@
 interface BaseQnaUrlParams {
     program: string;
     season: string;
-    id?: number;
-    page?: number;
 }
 
 interface QnaUrlIdParams extends BaseQnaUrlParams {
