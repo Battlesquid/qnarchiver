@@ -1,29 +1,42 @@
 import { Logger } from "pino";
 
-export interface RetryOptions<T> {
+export interface AttemptOptions<T> {
     callback: () => T | Promise<T>;
     onRetry?: (attempts: number) => void;
     logger?: Pick<Logger, "error">;
     attempts: number;
 }
 
-export const attempt = async <T>(opts: RetryOptions<T>): Promise<T | undefined> => {
+export interface AttemptSuccess<T> {
+    status: "success";
+    value: T;
+}
+
+export interface AttemptFailure {
+    status: "failure";
+}
+
+export type AttemptResult<T> = AttemptSuccess<T> | AttemptFailure;
+
+export const attempt = async <T>(options: AttemptOptions<T>): Promise<AttemptResult<T>> => {
     let result: T | undefined = undefined;
 
-    for (let i = 0; i < opts.attempts; i++) {
+    for (let i = 0; i < options.attempts; i++) {
         try {
-            result = await opts.callback();
-            return result;
+            result = await options.callback();
+            return {
+                status: "success",
+                value: result
+            };
         } catch (e) {
-            opts.logger?.error(e);
-            opts.onRetry?.(i);
-            if (i === opts.attempts - 1) {
-                throw e;
-            }
+            options.logger?.error(e);
+            options.onRetry?.(i);
         }
     }
 
-    return result;
+    return {
+        status: "failure"
+    };
 };
 
 export const nsToMsElapsed = (start: bigint): number => {
@@ -32,4 +45,8 @@ export const nsToMsElapsed = (start: bigint): number => {
 
 export const nsToMs = (ns: bigint): number => {
     return Number((Number(ns) / 1e6).toFixed(3));
+};
+
+export const sleep = (ms: number): Promise<void> => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 };

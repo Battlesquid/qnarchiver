@@ -72,14 +72,14 @@ const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace
     return [programs, seasons];
 };
 
-export const getScrapingUrls = async (filters?: QnaFilters, logger?: Pick<Logger, "trace">): Promise<QnaPageUrl[]> => {
+export const getScrapingUrls = async (filters?: QnaFilters, logger?: Logger): Promise<QnaPageUrl[]> => {
     const [programs, seasons] = await processFilters(filters, logger);
     const urls: QnaPageUrl[] = [];
     for (let ci = 0; ci < programs.length; ci++) {
         const program = programs[ci];
         const seasonList = seasons[ci];
-        const pages = await fetchPagesForSeasons(program, seasonList);
-        urls.concat(pages);
+        const pages = await fetchPagesForSeasons(program, seasonList, logger);
+        urls.push(...pages);
     }
     logger?.trace({ urls }, `Created ${urls.length} urls that satisfy the provided filters.`);
     return urls;

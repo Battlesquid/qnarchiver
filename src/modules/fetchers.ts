@@ -1,24 +1,30 @@
 import { Logger } from "pino";
 import { Question, Season } from "../types";
-import { attempt, nsToMsElapsed } from "../util";
+import { AttemptResult, attempt, nsToMsElapsed, sleep } from "../util";
 import { CURRENT_YEAR } from "./constants";
 import { extractPageCount, extractQuestion, extractQuestionUrls, unleak } from "./extractors";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
+import fetch from "node-fetch";
 
-export const getHtml = async (url: string, logger?: Logger): Promise<string> => {
+export const getHtml = async (url: string, logger?: Logger): Promise<string | null> => {
     logger?.trace(`Fetching HTML from ${url}.`);
     const response = await fetch(url);
     if (!response.ok) {
-        throw Error(`Fetch for ${url} returned ${response.status}: ${response.statusText}`);
+        logger?.error(`Fetch for ${url} returned ${response.status}: ${response.statusText}`, {
+            url,
+            status: response.status
+        });
+        return null;
     }
     return unleak(await response.text());
 };
 
-export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<number> => {
-    const pageCount = extractPageCount({
-        url,
-        html: await getHtml(url)
-    });
+export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<number | null> => {
+    const html = await getHtml(url);
+    if (html === null) {
+        return null;
+    }
+    const pageCount = extractPageCount({ url, html });
     logger?.trace(
         {
             label: "fetchPageCount",
@@ -42,11 +48,12 @@ export const pingQna = async (program: string, season: string, logger?: Logger):
     return response.ok;
 };
 
-export const fetchQuestion = async (url: QnaIdUrl): Promise<Question> => {
-    return extractQuestion({
-        url,
-        html: await getHtml(url)
-    });
+export const fetchQuestion = async (url: QnaIdUrl): Promise<Question | null> => {
+    const html = await getHtml(url);
+    if (html === null) {
+        return null;
+    }
+    return extractQuestion({ url, html });
 };
 
 export const fetchCurrentSeason = async (logger?: Logger): Promise<Season> => {
@@ -73,10 +80,15 @@ export const fetchAllSeasons = async (logger?: Logger): Promise<Season[]> => {
     return allSeasons;
 };
 
-export const fetchPagesForSeasons = async (program: string, seasons: Season[]): Promise<QnaPageUrl[]> => {
+export const fetchPagesForSeasons = async (program: string, seasons: Season[], logger?: Logger): Promise<QnaPageUrl[]> => {
     const urls: QnaPageUrl[] = [];
     for (const season of seasons) {
-        const pageCount = await fetchPageCount(buildHomeQnaUrl({ program, season }));
+        const url = buildHomeQnaUrl({ program, season });
+        const pageCount = await fetchPageCount(url, logger);
+        if (pageCount === null) {
+            logger?.warn(`Warning: unable to retreive page count for ${url}`);
+            continue;
+        }
         for (let page = 1; page <= pageCount; page++) {
             urls.push(buildQnaUrlWithPage({ program, season, page }));
         }
@@ -84,16 +96,20 @@ export const fetchPagesForSeasons = async (program: string, seasons: Season[]): 
     return urls;
 };
 
-export const fetchQuestionsFromPage = async (url: QnaPageUrl): Promise<[Question[], string[]]> => {
-    const urls = extractQuestionUrls({
-        url,
-        html: await getHtml(url)
-    });
+type PageQuestionsResults = [Question[], string[]];
+
+export const fetchQuestionsFromPage = async (url: QnaPageUrl, logger?: Logger): Promise<PageQuestionsResults | null> => {
+    const html = await getHtml(url);
+    if (html === null) {
+        return null;
+    }
+    const urls = extractQuestionUrls({ url, html });
+    logger?.trace({ urls }, `Extracted ${urls.length} urls from ${url}`);
     const results = await Promise.allSettled(urls.map(fetchQuestion));
     const passed: Question[] = [],
-        failed: string[] = [];
+        failed: QnaIdUrl[] = [];
     results.forEach((result, i) => {
-        if (result.status === "fulfilled") {
+        if (result.status === "fulfilled" && result.value !== null) {
             passed.push(result.value);
         } else {
             failed.push(urls[i]);
@@ -102,41 +118,47 @@ export const fetchQuestionsFromPage = async (url: QnaPageUrl): Promise<[Question
     return [passed, failed];
 };
 
+type Job<T> = {
+    name: string;
+    job: T;
+};
+
 export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logger, interval = 1500): Promise<Question[]> => {
-    const questions: Record<string, Question> = {};
-
-    const sleep = (ms: number): Promise<void> => {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    };
-
+    const jobs: Job<Promise<AttemptResult<PageQuestionsResults | null>>>[] = [];
     const startTime = process.hrtime.bigint();
 
     for (const url of urls) {
-        attempt({
-            attempts: 3,
-            async callback() {
-                return await fetchQuestionsFromPage(url);
-            },
-            logger
-        });
-
+        const job = {
+            name: url,
+            job: attempt({
+                attempts: 3,
+                callback: () => fetchQuestionsFromPage(url),
+                logger
+            })
+        };
+        jobs.push(job);
         await sleep(interval);
     }
 
-    const questionKeys = Object.keys(questions);
-    const results = await Promise.allSettled(Object.values(questions));
+    const jobResults = await Promise.all(jobs.map((j) => j.job));
     const elapsed = new Date(nsToMsElapsed(startTime));
     const success: Question[] = [],
-        failed: string[] = [];
-    results.forEach((result, i) => {
-        if (result.status === "fulfilled") {
-            success.push(result.value);
+        failedQuestions: string[] = [],
+        failedPages: string[] = [];
+    jobResults.forEach((job, i) => {
+        if (job.status === "success" && job.value !== null) {
+            const [passed, failed] = job.value;
+            success.push(...passed);
+            failedQuestions.push(...failed);
         } else {
-            failed.push(questionKeys[i]);
+            failedPages.push(jobs[i].name);
         }
     });
 
-    logger?.info(`${success.length} succeeded, ${failed.length} failed.`, { failed });
+    logger?.info(`${success.length} succeeded, ${failedQuestions.length} questions failed, ${failedPages.length} question pages failed.`, {
+        failedQuestions,
+        failedPages
+    });
     logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
     return success;
 };
