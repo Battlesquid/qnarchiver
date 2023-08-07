@@ -20,10 +20,10 @@ export const getUnansweredQuestions = async (logger?: Logger): Promise<Question[
  */
 export const getQuestions = async (filters?: QnaFilters, logger?: Logger): Promise<Question[]> => {
     if (filters === undefined) {
-        filters = [await fetchCurrentSeason()];
+        filters = [await fetchCurrentSeason(logger)];
     }
-    const queryUrls = await getScrapingUrls(filters, logger);
-    return fetchQuestionsFromPages(queryUrls, logger);
+    const urls = await getScrapingUrls(filters, logger);
+    return fetchQuestionsFromPages(urls, logger);
 };
 
 /**
