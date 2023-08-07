@@ -1,24 +1,5 @@
 import { DEFAULT_PROGRAMS } from "./modules/constants";
 
-export const QUESTION_PROPERTIES: readonly (keyof Question)[] = [
-    "id",
-    "url",
-    "author",
-    "program",
-    "title",
-    "question",
-    "questionRaw",
-    "answer",
-    "answerRaw",
-    "season",
-    "askedTimestamp",
-    "askedTimestampMs",
-    "answeredTimestamp",
-    "answeredTimestampMs",
-    "answered",
-    "tags"
-] as const;
-
 export interface Question {
     /**
      * The question's numerical ID.
