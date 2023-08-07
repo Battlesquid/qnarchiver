@@ -29,7 +29,7 @@ const selectRawHtml = ($: cheerio.Root, selector: string | cheerio.Element): str
     return unleak(unformat($(selector).html() ?? ""));
 };
 
-export const extractQuestionUrls = ({ html }: ScrapedPage<QnaPageUrl>): QnaIdUrl[] => {
+export const extractPageQuestions = ({ html }: ScrapedPage<QnaPageUrl>): QnaIdUrl[] => {
     const $ = cheerioModule.load(html);
     return $(SELECTORS.URLS)
         .toArray()

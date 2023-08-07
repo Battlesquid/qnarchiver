@@ -2,7 +2,7 @@ import { Logger } from "pino";
 import { Question, Season } from "../types";
 import { AttemptResult, attempt, nsToMsElapsed, sleep } from "../util";
 import { CURRENT_YEAR } from "./constants";
-import { extractPageCount, extractQuestion, extractQuestionUrls, unleak } from "./extractors";
+import { extractPageCount, extractQuestion, extractPageQuestions, unleak } from "./extractors";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
 import fetch from "node-fetch";
 
@@ -103,7 +103,7 @@ export const fetchQuestionsFromPage = async (url: QnaPageUrl, logger?: Logger): 
     if (html === null) {
         return null;
     }
-    const urls = extractQuestionUrls({ url, html });
+    const urls = extractPageQuestions({ url, html });
     logger?.trace({ urls }, `Extracted ${urls.length} urls from ${url}`);
     const results = await Promise.allSettled(urls.map(fetchQuestion));
     const passed: Question[] = [],
