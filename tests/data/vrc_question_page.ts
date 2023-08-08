@@ -1,5 +1,5 @@
-import { ScrapedPage } from "../../modules/extractors";
-import { QnaIdUrl } from "../../modules/parsing";
+import { ScrapedPage } from "../../src/modules/extractors";
+import { QnaIdUrl } from "../../src/modules/parsing";
 
 export default {
     url: "https://www.robotevents.com/VRC/2023-2024/QA/1591",

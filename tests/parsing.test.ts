@@ -1,4 +1,4 @@
-import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithId, buildQnaUrlWithPage, parseQnaUrlWithId, parseQnaUrlWithPage, validateQnaUrl } from "../modules/parsing";
+import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithId, buildQnaUrlWithPage, parseQnaUrlWithId, parseQnaUrlWithPage, validateQnaUrl } from "../src/modules/parsing";
 
 const TEST_SEASON = "2023-2024";
 const TEST_PROGRAM = "VRC";

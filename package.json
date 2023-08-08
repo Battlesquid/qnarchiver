@@ -1,9 +1,19 @@
 {
-    "name": "vex-qna-scraper",
+    "name": "vex-qna-archiver",
     "author": "battlesqui_d",
     "description": "Utility package to scrape questions from the VEX Robotics Q&A.",
-    "version": "1.0.0",
+    "version": "6.0.0",
     "license": "GPL-3.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Battlesquid/qnarchiver.git"
+    },
+    "keywords": [
+        "vex",
+        "vex robotics",
+        "qna",
+        "scrape"
+    ],
     "main": "dist/src/index.js",
     "scripts": {
         "test": "jest",
@@ -15,18 +25,13 @@
         "prepack": "pinst --disable",
         "postpack": "pinst --enable"
     },
-    "lint-staged": {
-        "*.ts": "yarn lint --fix",
-        "**/*": "prettier --write --ignore-unknown"
-    },
+    "files": [
+        "dist/src/**/*"
+    ],
     "dependencies": {
         "cheerio": "^1.0.0-rc.3",
         "node-fetch": "^3.3.2",
         "pino": "^8.14.2"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Battlesquid/qnarchiver.git"
     },
     "devDependencies": {
         "@types/cheerio": "^0.22.22",
@@ -47,13 +52,10 @@
         "typescript": "^5.1.6"
     },
     "types": "dist/index.d.ts",
-    "packageManager": "yarn@1.22.19",
-    "keywords": [
-        "vex",
-        "vex robotics",
-        "qna",
-        "scrape"
-    ],
+    "lint-staged": {
+        "*.ts": "yarn lint --fix",
+        "**/*": "prettier --write --ignore-unknown"
+    },
     "volta": {
         "node": "18.9.0",
         "yarn": "1.22.19"

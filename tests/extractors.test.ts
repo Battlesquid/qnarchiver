@@ -1,4 +1,4 @@
-import { extractPageCount, extractPageQuestions, extractQuestion } from "../modules/extractors";
+import { extractPageCount, extractPageQuestions, extractQuestion } from "../src/modules/extractors";
 import judging_home_page from "./data/judging_home_page";
 import vexu_home_page from "./data/vexu_home_page";
 import vrc_home_page from "./data/vrc_home_page";

@@ -3,9 +3,9 @@
  * https://jestjs.io/docs/configuration
  */
 
-import type { Config } from "jest";
-
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
+    preset: "ts-jest",
     // All imported modules in your tests should be mocked automatically
     // automock: false,
 
@@ -16,7 +16,7 @@ const config: Config = {
     // cacheDirectory: "/tmp/jest_rs",
 
     // Automatically clear mock calls, instances, contexts and results before every test
-    clearMocks: true,
+    // clearMocks: false,
 
     // Indicates whether the coverage information should be collected while executing the test
     collectCoverage: true,
@@ -31,7 +31,7 @@ const config: Config = {
     // coveragePathIgnorePatterns: [
     //   "/node_modules/"
     // ],
-
+    collectCoverageFrom: ["src/**/*.ts"],
     // Indicates which provider should be used to instrument code for coverage
     coverageProvider: "v8",
 
@@ -93,7 +93,7 @@ const config: Config = {
     // moduleNameMapper: {},
 
     // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
-    modulePathIgnorePatterns: ["data/"],
+    // modulePathIgnorePatterns: [],
 
     // Activates notifications for test results
     // notify: false,
@@ -126,9 +126,7 @@ const config: Config = {
     // rootDir: undefined,
 
     // A list of paths to directories that Jest should use to search for files in
-    // roots: [
-    //   "<rootDir>"
-    // ],
+    roots: ["<rootDir>/tests"],
 
     // Allows you to use a custom runner instead of Jest's default test runner
     // runner: "jest-runner",
@@ -161,9 +159,7 @@ const config: Config = {
     // ],
 
     // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
-    // testPathIgnorePatterns: [
-    //   "/node_modules/"
-    // ],
+    testPathIgnorePatterns: ["/node_modules/", "/tests/data"]
 
     // The regexp pattern or array of patterns that Jest uses to detect test files
     // testRegex: [],
@@ -175,9 +171,7 @@ const config: Config = {
     // testRunner: "jest-circus/runner",
 
     // A map from regular expressions to paths to transformers
-    transform: {
-        "^.+\\.tsx?$": "ts-jest"
-    },
+    // transform: undefined,
 
     // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
     // transformIgnorePatterns: [
@@ -189,7 +183,7 @@ const config: Config = {
     // unmockedModulePathPatterns: undefined,
 
     // Indicates whether each individual test should be reported during the run
-    verbose: true
+    // verbose: undefined,
 
     // An array of regexp patterns that are matched against all source file paths before re-running tests in watch mode
     // watchPathIgnorePatterns: [],
@@ -198,4 +192,4 @@ const config: Config = {
     // watchman: true,
 };
 
-export default config;
+module.exports = config;

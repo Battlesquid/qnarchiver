@@ -1,10 +1,9 @@
-import { ScrapedPage } from "../../modules/extractors";
-import { QnaPageUrl } from "../../modules/parsing";
+import { ScrapedPage } from "../../src/modules/extractors";
+import { QnaHomeUrl } from "../../src/modules/parsing";
 
 export default {
-    url: "https://www.robotevents.com/vexu/2023-2024/QA?page=1",
-    html: `
-<!DOCTYPE html>
+    url: "https://www.robotevents.com/judging/2023-2024/QA",
+    html: `<!DOCTYPE html>
 <html lang="en">
 <head class="h-100">
     <meta charset="utf-8">
@@ -12,7 +11,7 @@ export default {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="uap2eHcynMZ4GSkkCaKPPSibtpIM7CAKc3Sd34mI">
         <title>
-                    Q&amp;A: VEXU 2023-2024: Over Under : Robot Events
+                    Q&amp;A: Judging : Robot Events
             </title>
     <script>
         window._sentry = {
@@ -45,7 +44,7 @@ export default {
     </style>
 
 <script>(window.BOOMR_mq=window.BOOMR_mq||[]).push(["addVar",{"rua.upush":"false","rua.cpush":"false","rua.upre":"false","rua.cpre":"false","rua.uprl":"false","rua.cprl":"false","rua.cprf":"false","rua.trans":"","rua.cook":"false","rua.ims":"false","rua.ufprl":"false","rua.cfprl":"false","rua.isuxp":"false","rua.texp":"norulematch"}]);</script>
-                              <script>!function(a){var e="https://s.go-mpulse.net/boomerang/",t="addEventListener";if("False"=="True")a.BOOMR_config=a.BOOMR_config||{},a.BOOMR_config.PageParams=a.BOOMR_config.PageParams||{},a.BOOMR_config.PageParams.pci=!0,e="https://s2.go-mpulse.net/boomerang/";if(window.BOOMR_API_key="28XQ5-GM8SS-4QJRU-YYRQX-UPV5E",function(){function n(e){a.BOOMR_onload=e&&e.timeStamp||(new Date).getTime()}if(!a.BOOMR||!a.BOOMR.version&&!a.BOOMR.snippetExecuted){a.BOOMR=a.BOOMR||{},a.BOOMR.snippetExecuted=!0;var i,_,o,r=document.createElement("iframe");if(a[t])a[t]("load",n,!1);else if(a.attachEvent)a.attachEvent("onload",n);r.src="javascript:void(0)",r.title="",r.role="presentation",(r.frameElement||r).style.cssText="width:0;height:0;border:0;display:none;",o=document.getElementsByTagName("script")[0],o.parentNode.insertBefore(r,o);try{_=r.contentWindow.document}catch(O){i=document.domain,r.src="javascript:var d=document.open();d.domain='"+i+"';void(0);",_=r.contentWindow.document}_.open()._l=function(){var a=this.createElement("script");if(i)this.domain=i;a.id="boomr-if-as",a.src=e+"28XQ5-GM8SS-4QJRU-YYRQX-UPV5E",BOOMR_lstart=(new Date).getTime(),this.body.appendChild(a)},_.write("<bo"+'dy onload="document._l();">'),_.close()}}(),"".length>0)if(a&&"performance"in a&&a.performance&&"function"==typeof a.performance.setResourceTimingBufferSize)a.performance.setResourceTimingBufferSize();!function(){if(BOOMR=a.BOOMR||{},BOOMR.plugins=BOOMR.plugins||{},!BOOMR.plugins.AK){var e=""=="true"?1:0,t="",n="i2xxyyaxjmqtazgrhura-f-03f78297d-clientnsv4-s.akamaihd.net",i="false"=="true"?2:1,_={"ak.v":"36","ak.cp":"1394132","ak.ai":parseInt("221764",10),"ak.ol":"0","ak.cr":21,"ak.ipv":4,"ak.proto":"h2","ak.rid":"1add2384","ak.r":46590,"ak.a2":e,"ak.m":"a","ak.n":"essl","ak.bpcip":"70.175.124.0","ak.cport":50798,"ak.gh":"23.217.119.134","ak.quicv":"","ak.tlsv":"tls1.3","ak.0rtt":"","ak.csrc":"-","ak.acc":"","ak.t":"1691434274","ak.ak":"hOBiQwZUYzCg5VSAfCLimQ==vCDTWa3ZHQ2rBLjN0Cn9xbJe4Tixvfm9Vw6mgrcjYorpw8OVYl3iuaNqr8ZQry1m+E59CEj3FWjWwLP4k9gfcH7BY/XiBq97auYv47lsDz91LEnlNn+xO4t88rGFasUxauUbHWY+SuI6ANSHd/cE7lKWytwILHAeBhDsTvU0BkN+aZ9p5Kx8nn+PHlC1rJiCudJ/HqCWTaNFHgWjJR8KCLzVU7kg4rY0qE+NG/rOagZqI/K06QrEj0SGQwaY6AyS9sWciuNkdlD67doe9XVG17O5+pa7Ohf7mMzDZYcSBM1xIhGHmdae+RaNXWgBF5QKadDKitEOJ8lHVSLqpjHT0BADK99h/rrhwAI54IX16kc2r/3oWZBSyEvLT9PtSGcYNS/Jak4uIqIyapW2OEeGoiz+aa/FH0W+S+z9TOW27hE=","ak.pv":"322","ak.dpoabenc":"","ak.tf":i};if(""!==t)_["ak.ruds"]=t;var o={i:!1,av:function(e){var t="http.initiator";if(e&&(!e[t]||"spa_hard"===e[t]))_["ak.feo"]=void 0!==a.aFeoApplied?1:0,BOOMR.addVar(_)},rv:function(){var a=["ak.bpcip","ak.cport","ak.cr","ak.csrc","ak.gh","ak.ipv","ak.m","ak.n","ak.ol","ak.proto","ak.quicv","ak.tlsv","ak.0rtt","ak.r","ak.acc","ak.t","ak.tf"];BOOMR.removeVar(a)}};BOOMR.plugins.AK={akVars:_,akDNSPreFetchDomain:n,init:function(){if(!o.i){var a=BOOMR.subscribe;a("before_beacon",o.av,null,null),a("onbeacon",o.rv,null,null),o.i=!0}return this},is_complete:function(){return!0}}}}()}(window);</script><script >bazadebezolkohpepadr="1137576546"</script><script type="text/javascript" src="https://www.robotevents.com/akam/13/43ce0b9f"  defer></script></head>
+                              <script>!function(a){var e="https://s.go-mpulse.net/boomerang/",t="addEventListener";if("False"=="True")a.BOOMR_config=a.BOOMR_config||{},a.BOOMR_config.PageParams=a.BOOMR_config.PageParams||{},a.BOOMR_config.PageParams.pci=!0,e="https://s2.go-mpulse.net/boomerang/";if(window.BOOMR_API_key="28XQ5-GM8SS-4QJRU-YYRQX-UPV5E",function(){function n(e){a.BOOMR_onload=e&&e.timeStamp||(new Date).getTime()}if(!a.BOOMR||!a.BOOMR.version&&!a.BOOMR.snippetExecuted){a.BOOMR=a.BOOMR||{},a.BOOMR.snippetExecuted=!0;var i,_,o,r=document.createElement("iframe");if(a[t])a[t]("load",n,!1);else if(a.attachEvent)a.attachEvent("onload",n);r.src="javascript:void(0)",r.title="",r.role="presentation",(r.frameElement||r).style.cssText="width:0;height:0;border:0;display:none;",o=document.getElementsByTagName("script")[0],o.parentNode.insertBefore(r,o);try{_=r.contentWindow.document}catch(O){i=document.domain,r.src="javascript:var d=document.open();d.domain='"+i+"';void(0);",_=r.contentWindow.document}_.open()._l=function(){var a=this.createElement("script");if(i)this.domain=i;a.id="boomr-if-as",a.src=e+"28XQ5-GM8SS-4QJRU-YYRQX-UPV5E",BOOMR_lstart=(new Date).getTime(),this.body.appendChild(a)},_.write("<bo"+'dy onload="document._l();">'),_.close()}}(),"".length>0)if(a&&"performance"in a&&a.performance&&"function"==typeof a.performance.setResourceTimingBufferSize)a.performance.setResourceTimingBufferSize();!function(){if(BOOMR=a.BOOMR||{},BOOMR.plugins=BOOMR.plugins||{},!BOOMR.plugins.AK){var e=""=="true"?1:0,t="",n="i2xxyydimrksszgrhevq-f-956a96596-clientnsv4-s.akamaihd.net",i="false"=="true"?2:1,_={"ak.v":"36","ak.cp":"1394132","ak.ai":parseInt("221764",10),"ak.ol":"0","ak.cr":36,"ak.ipv":4,"ak.proto":"h2","ak.rid":"38c5f687","ak.r":45796,"ak.a2":e,"ak.m":"a","ak.n":"essl","ak.bpcip":"70.175.124.0","ak.cport":50688,"ak.gh":"23.213.244.104","ak.quicv":"","ak.tlsv":"tls1.3","ak.0rtt":"","ak.csrc":"-","ak.acc":"","ak.t":"1691433259","ak.ak":"hOBiQwZUYzCg5VSAfCLimQ==aCpFPO4A+Q0pZWi+N/BcqII25weldwHr8FUm7HUxdWLSLHiMkXizrK4K7ZiMn3t76E8jF/ZCO7sHWejVBBjqq2kGDAHvPTbFX0hL6zTF800ivddmnA9ga+pVf3ssucdwtlWhpw43y79CZBQ3T8Ij5Xn4c7h7ZUjhPQ0hhozWK+AjnituBr/WzsQQravfp55PRut/ChKUUq6EG9Rk4oTEUDjBiVrjUc/7ukyE9sB0CMxWBLy3JqG9LVDCtRk5prwXxtLghTPjkJT1gVcZPjK2QB4CrTpad3+cE/XB5ytde+90NFwKQIlCw6VUJqMOlqWqu7uoeeXdGXAXsxCudfUDc15d0y+mJuo3XX3qTgCScnMGFO6KQ0vgLh6y9rq7o6V8wrr+FZUPnR8L+Wgr5cxBedNCiqd08bBNnvzLLMi8PiI=","ak.pv":"322","ak.dpoabenc":"","ak.tf":i};if(""!==t)_["ak.ruds"]=t;var o={i:!1,av:function(e){var t="http.initiator";if(e&&(!e[t]||"spa_hard"===e[t]))_["ak.feo"]=void 0!==a.aFeoApplied?1:0,BOOMR.addVar(_)},rv:function(){var a=["ak.bpcip","ak.cport","ak.cr","ak.csrc","ak.gh","ak.ipv","ak.m","ak.n","ak.ol","ak.proto","ak.quicv","ak.tlsv","ak.0rtt","ak.r","ak.acc","ak.t","ak.tf"];BOOMR.removeVar(a)}};BOOMR.plugins.AK={akVars:_,akDNSPreFetchDomain:n,init:function(){if(!o.i){var a=BOOMR.subscribe;a("before_beacon",o.av,null,null),a("onbeacon",o.rv,null,null),o.i=!0}return this},is_complete:function(){return!0}}}}()}(window);</script><script >bazadebezolkohpepadr="1137576546"</script><script type="text/javascript" src="https://www.robotevents.com/akam/13/43ce0b9f"  defer></script></head>
 <body class="d-flex flex-column min-vh-100">
     <div id="header-wrap" class="mb-3 bg-white">
         <div class="container header d-none d-lg-block mb-2">
@@ -323,11 +322,11 @@ export default {
                             
     <div class="d-flex justify-content-between align-items-baseline">
         <h1 class="page-header">
-                            Official Q&amp;A: VEXU 2023-2024: Over Under
+                            Judging
                     </h1>
 
         <div>
-                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/guidelines"
+                    <a href="https://www.robotevents.com/judging/2023-2024/QA/guidelines"
                class="btn btn-primary btn-sm">
                 Usage Guidelines
             </a>
@@ -337,19 +336,19 @@ export default {
 
     <div id="faq">
             
-    <p>Welcome to the official VEX U Question &amp; Answer system, where all registered teams have the opportunity to ask for official rules interpretations and clarifications. This Q&amp;A system is the only source for official VEX U Over Under rules clarifications, and the clarifications made here from the Game Design Committee (GDC) are considered as official and binding as the written <a href="https://link.vex.com/docs/23-24/vrc-over-under/GameManual">Game Manual</a> itself.</p>
-<p><strong>Please review the <a href="https://robotevents.com/VEXU/2023-2024/QA/guidelines">Q&amp;A Usage Guidelines</a> before posting</strong>.  This system is only intended for specific VEX U Over Under rules questions.</p>
+    <p>Welcome to the official REC Foundation Question &amp; Answer system for Judging. All registered teams can ask for official Judging interpretations and clarifications. This Q&amp;A is the only source for official Judging clarifications, and the clarifications made here by the REC Foundation Competition Judging Committee (CJC) are considered as official and binding as the written <a href="https://www.roboticseducation.org/documents/2019/08/judge-guide.pdf/">Guide to Judging</a>.</p>
 <ul>
-<li>For event, registration, or other competition support questions, please contact your <a href="http://www.robotevents.com/support">REC Foundation Manager</a>.</li>
-<li>For VEX technical support, contact <a href="mailto:support@vex.com">support@vex.com</a> or <a href="mailto:sales@vex.com">sales@vex.com</a>.</li>
-<li>For game questions, suggestions, or concerns outside of specific and official rules questions, contact <a href="mailto:GDC@vex.com">GDC@vex.com</a>.</li>
+<li>Please review the <a href="/judging/2019-2020/QA/guidelines">Judging Q&amp;A Usage Guidelines</a> before posting. This Q&amp;A is only intended for specific Judging questions for the VEX IQ Challenge, VEX Robotics Competition, and VEX U Competition.</li>
+<li>Please review the current season <a href="https://www.roboticseducation.org/documents/2019/08/judge-guide.pdf/">Guide to Judging</a> before posting.</li>
+<li>For event, registration, or other competition support questions, please contact your REC Foundation Regional Support Manager.</li>
+<li>For questions related to game rules and interpretations, please navigate to the Official Game Q&amp;A (<a href="https://www.robotevents.com/VRC/2023-2024/QA">VRC </a>/ <a href="https://www.robotevents.com/VIQC/2023-2024/QA">IQ</a>) . Click the back button in your browser, then click the VEX Q&amp;A Forum button.</li>
 </ul>
 
 
 
     <div class="row">
         <div class="col-sm-4">
-            <form method="GET" action="https://www.robotevents.com/vexu/2023-2024/QA" accept-charset="UTF-8">
+            <form method="GET" action="https://www.robotevents.com/judging/2023-2024/QA" accept-charset="UTF-8">
             <div class="input-group">
                 <input type="text"
                        class="form-control"
@@ -377,18 +376,18 @@ export default {
 
                 <ul class="dropdown-menu">
                                         <li class="dropdown-item">
-                        <a href="https://www.robotevents.com/faqs/37/pdf">
+                        <a href="https://www.robotevents.com/faqs/9/pdf">
                             All Questions
                         </a>
                     </li>
                     <li class="dropdown-item">
-                        <a href="https://www.robotevents.com/faqs/37/pdf?important=1">
+                        <a href="https://www.robotevents.com/faqs/9/pdf?important=1">
                             Starred Questions
                         </a>
                     </li>
                 </ul>
             </div>
-                            <a href="https://www.robotevents.com/VEXU/2023-2024/QA/ask"
+                            <a href="https://www.robotevents.com/judging/2023-2024/QA/ask"
                    class="btn btn-default">
                     <i class="fa fa-fw fa-edit"></i>
                     Ask a Question
@@ -397,21 +396,21 @@ export default {
     </div>
 
             <hr>
-                            <a href="https://www.robotevents.com/VEXU/2023-2024/QA?filter=new_question"
+                            <a href="https://www.robotevents.com/judging/2023-2024/QA?filter=new_question"
                    class="btn btn-danger" style="margin-bottom: 1em">
                 <i class="fa fa-filter"></i>
 
                 New Questions
 
-                <span class="badge badge-secondary">14</span>
+                <span class="badge badge-secondary">5</span>
             </a>
-                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA?filter=new_answer"
+                    <a href="https://www.robotevents.com/judging/2023-2024/QA?filter=new_answer"
                    class="btn btn-danger" style="margin-bottom: 1em">
                 <i class="fa fa-filter"></i>
 
                 New Answers
 
-                <span class="badge badge-secondary">7</span>
+                <span class="badge badge-secondary">4</span>
             </a>
             
     <br>
@@ -420,84 +419,90 @@ export default {
     
                         <div class="card-body">
                 <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1601">
-                                                Fasteners and Springs - Legal Items or Legal Uses
-                    </a>
-                
-                            </h4>
-
-            <div class="question">
-                <div class="details">
-                    <div class="author">
-                        <i class="fa fa-fw fa-group"></i>
-                        CBU1
-                    </div>
-                    <div class="timestamp">
-                        <i class="fa fa-fw fa-calendar"></i>
-                        1-Aug-2023
-                    </div>
-                </div>
-
-                            </div>
-
-            <div class="tags clearfix">
-                                                                            <span class="badge bg-danger me-2">New Question</span>
-                                                                                    </div>
-                                                <hr>
-                        <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1600">
-                                                Fabricating Parts not Designed by the Team
-                    </a>
-                
-                            </h4>
-
-            <div class="question">
-                <div class="details">
-                    <div class="author">
-                        <i class="fa fa-fw fa-group"></i>
-                        CBU1
-                    </div>
-                    <div class="timestamp">
-                        <i class="fa fa-fw fa-calendar"></i>
-                        1-Aug-2023
-                    </div>
-                </div>
-
-                            </div>
-
-            <div class="tags clearfix">
-                                                                            <span class="badge bg-danger me-2">New Question</span>
-                                                                                    </div>
-                                                <hr>
-                        <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1599">
-                                                Possession / Shoving Triballs
-                    </a>
-                
-                            </h4>
-
-            <div class="question">
-                <div class="details">
-                    <div class="author">
-                        <i class="fa fa-fw fa-group"></i>
-                        CBU1
-                    </div>
-                    <div class="timestamp">
-                        <i class="fa fa-fw fa-calendar"></i>
-                        1-Aug-2023
-                    </div>
-                </div>
-
-                            </div>
-
-            <div class="tags clearfix">
-                                                                            <span class="badge bg-danger me-2">New Question</span>
-                                                                                    </div>
-                                                <hr>
-                        <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1593">
+                                    <a href="https://www.robotevents.com/judging/2023-2024/QA/1592">
                                                     <span class="is_answered"><i class="fa fa-check-circle"></i></span>
-                                                VUR4, VUR5 and Angle stock
+                                                Guidelines when Judging Single-Student Teams
+                    </a>
+                
+                            </h4>
+
+            <div class="question">
+                <div class="details">
+                    <div class="author">
+                        <i class="fa fa-fw fa-group"></i>
+                        Dale Nacianceno (Event Partner)
+                    </div>
+                    <div class="timestamp">
+                        <i class="fa fa-fw fa-calendar"></i>
+                        19-Jul-2023
+                    </div>
+                </div>
+
+                            </div>
+
+            <div class="tags clearfix">
+                                                                            <span class="badge bg-danger me-2">New Question</span>
+                                                                <span class="badge bg-success me-2">New Answer</span>
+                                                                </div>
+                                                <hr>
+                        <h4 class="title">
+                                    <a href="https://www.robotevents.com/judging/2023-2024/QA/1564">
+                                                    <span class="is_answered"><i class="fa fa-check-circle"></i></span>
+                                                Excellence Eligibility criteria
+                    </a>
+                
+                            </h4>
+
+            <div class="question">
+                <div class="details">
+                    <div class="author">
+                        <i class="fa fa-fw fa-group"></i>
+                        Alex Saikia (Event Partner)
+                    </div>
+                    <div class="timestamp">
+                        <i class="fa fa-fw fa-calendar"></i>
+                        20-Jun-2023
+                    </div>
+                </div>
+
+                            </div>
+
+            <div class="tags clearfix">
+                                                                            <span class="badge bg-danger me-2">New Question</span>
+                                                                <span class="badge bg-success me-2">New Answer</span>
+                                                                </div>
+                                                <hr>
+                        <h4 class="title">
+                                    <a href="https://www.robotevents.com/judging/2023-2024/QA/1562">
+                                                    <span class="is_answered"><i class="fa fa-check-circle"></i></span>
+                                                Optional Materials During Interview
+                    </a>
+                
+                            </h4>
+
+            <div class="question">
+                <div class="details">
+                    <div class="author">
+                        <i class="fa fa-fw fa-group"></i>
+                        Dale Nacianceno (Event Partner)
+                    </div>
+                    <div class="timestamp">
+                        <i class="fa fa-fw fa-calendar"></i>
+                        20-Jun-2023
+                    </div>
+                </div>
+
+                            </div>
+
+            <div class="tags clearfix">
+                                                                            <span class="badge bg-danger me-2">New Question</span>
+                                                                <span class="badge bg-success me-2">New Answer</span>
+                                                                </div>
+                                                <hr>
+                        <h4 class="title">
+                                    <a href="https://www.robotevents.com/judging/2023-2024/QA/1556">
+                                                    <span class="is_answered"><i class="fa fa-check-circle"></i></span>
+                                                Excellence Award Minimum Criteria within VEXU and small blended Tournaments
                     </a>
                 
                             </h4>
@@ -510,167 +515,7 @@ export default {
                     </div>
                     <div class="timestamp">
                         <i class="fa fa-fw fa-calendar"></i>
-                        21-Jul-2023
-                    </div>
-                </div>
-
-                            </div>
-
-            <div class="tags clearfix">
-                                                                            <span class="badge bg-danger me-2">New Question</span>
-                                                                <span class="badge bg-success me-2">New Answer</span>
-                                                                </div>
-                                                <hr>
-                        <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1585">
-                                                    <span class="is_answered"><i class="fa fa-check-circle"></i></span>
-                                                &lt;VUR3&gt; / &lt;VUR4&gt; Producing &quot;Raw Material&quot; via Casting/Molding
-                    </a>
-                
-                            </h4>
-
-            <div class="question">
-                <div class="details">
-                    <div class="author">
-                        <i class="fa fa-fw fa-group"></i>
-                        GHOST
-                    </div>
-                    <div class="timestamp">
-                        <i class="fa fa-fw fa-calendar"></i>
-                        14-Jul-2023
-                    </div>
-                </div>
-
-                            </div>
-
-            <div class="tags clearfix">
-                                                                            <span class="badge bg-danger me-2">New Question</span>
-                                                                <span class="badge bg-success me-2">New Answer</span>
-                                                                </div>
-                                                <hr>
-                        <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1584">
-                                                &lt;VUR3&gt; and &lt;VUR5&gt; Molding Silicone/Urethane Parts
-                    </a>
-                
-                            </h4>
-
-            <div class="question">
-                <div class="details">
-                    <div class="author">
-                        <i class="fa fa-fw fa-group"></i>
-                        UCCR1
-                    </div>
-                    <div class="timestamp">
-                        <i class="fa fa-fw fa-calendar"></i>
-                        11-Jul-2023
-                    </div>
-                </div>
-
-                            </div>
-
-            <div class="tags clearfix">
-                                                                            <span class="badge bg-danger me-2">New Question</span>
-                                                                                    </div>
-                                                <hr>
-                        <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1577">
-                                                    <span class="is_answered"><i class="fa fa-check-circle"></i></span>
-                                                Modification of Motor Cartridges
-                    </a>
-                
-                            </h4>
-
-            <div class="question">
-                <div class="details">
-                    <div class="author">
-                        <i class="fa fa-fw fa-group"></i>
-                        GUARD
-                    </div>
-                    <div class="timestamp">
-                        <i class="fa fa-fw fa-calendar"></i>
-                        28-Jun-2023
-                    </div>
-                </div>
-
-                            </div>
-
-            <div class="tags clearfix">
-                                                                            <span class="badge bg-danger me-2">New Question</span>
-                                                                <span class="badge bg-success me-2">New Answer</span>
-                                                                </div>
-                                                <hr>
-                        <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1576">
-                                                    <span class="is_answered"><i class="fa fa-check-circle"></i></span>
-                                                SG1 repositioning Match Load Zone Triballs
-                    </a>
-                
-                            </h4>
-
-            <div class="question">
-                <div class="details">
-                    <div class="author">
-                        <i class="fa fa-fw fa-group"></i>
-                        Charles Jeffries (Event Partner)
-                    </div>
-                    <div class="timestamp">
-                        <i class="fa fa-fw fa-calendar"></i>
-                        28-Jun-2023
-                    </div>
-                </div>
-
-                            </div>
-
-            <div class="tags clearfix">
-                                                                            <span class="badge bg-danger me-2">New Question</span>
-                                                                <span class="badge bg-success me-2">New Answer</span>
-                                                                </div>
-                                                <hr>
-                        <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1575">
-                                                    <span class="is_answered"><i class="fa fa-check-circle"></i></span>
-                                                Legality of Spin Up Legal Robots
-                    </a>
-                
-                            </h4>
-
-            <div class="question">
-                <div class="details">
-                    <div class="author">
-                        <i class="fa fa-fw fa-group"></i>
-                        Charles Jeffries (Event Partner)
-                    </div>
-                    <div class="timestamp">
-                        <i class="fa fa-fw fa-calendar"></i>
-                        28-Jun-2023
-                    </div>
-                </div>
-
-                            </div>
-
-            <div class="tags clearfix">
-                                                                            <span class="badge bg-danger me-2">New Question</span>
-                                                                <span class="badge bg-success me-2">New Answer</span>
-                                                                </div>
-                                                <hr>
-                        <h4 class="title">
-                                    <a href="https://www.robotevents.com/VEXU/2023-2024/QA/1574">
-                                                    <span class="is_answered"><i class="fa fa-check-circle"></i></span>
-                                                SG6 1a Allowing a Triball to Fall Over
-                    </a>
-                
-                            </h4>
-
-            <div class="question">
-                <div class="details">
-                    <div class="author">
-                        <i class="fa fa-fw fa-group"></i>
-                        Charles Jeffries (Event Partner)
-                    </div>
-                    <div class="timestamp">
-                        <i class="fa fa-fw fa-calendar"></i>
-                        28-Jun-2023
+                        16-Jun-2023
                     </div>
                 </div>
 
@@ -682,29 +527,7 @@ export default {
                                                                 </div>
                     
         <div class="mt-3 d-flex justify-content-center">
-            <nav>
-        <ul class="pagination d-flex d-md-flex">
             
-                            <li class="page-item disabled" aria-disabled="true" aria-label="&laquo; Previous">
-                    <span class="page-link" aria-hidden="true">&lsaquo;</span>
-                </li>
-            
-            
-                            
-                
-                
-                                                                                        <li class="page-item active" aria-current="page"><span class="page-link">1</span>
-                            </li>
-                                                                                                <li class="page-item"><a class="page-link" href="https://www.robotevents.com/vexu/2023-2024/QA?page=2">2</a></li>
-                                                                        
-            
-                            <li class="page-item">
-                    <a class="page-link" href="https://www.robotevents.com/vexu/2023-2024/QA?page=2" rel="next"
-                       aria-label="Next &raquo;">&rsaquo;</a>
-                </li>
-                    </ul>
-    </nav>
-
         </div>
             </div>
             
@@ -766,4 +589,4 @@ export default {
     <noscript><img src="https://www.robotevents.com/akam/13/pixel_43ce0b9f?a=dD0wYzY2M2U1NmM2NTFmNjYzMGM1MzUzMzgxM2RmNmRkOWVkOTNjYjBmJmpzPW9mZg==" style="visibility: hidden; position: absolute; left: -999px; top: -999px;" /></noscript></body>
 </html>
 `
-} satisfies ScrapedPage<QnaPageUrl>;
+} satisfies ScrapedPage<QnaHomeUrl>;
