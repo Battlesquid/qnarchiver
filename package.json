@@ -1,13 +1,9 @@
 {
-    "name": "vex-qna-archiver",
+    "name": "vex-qna-scraper",
+    "author": "battlesqui_d",
+    "description": "Utility package to scrape questions from the VEX Robotics Q&A.",
     "version": "5.0.0",
-    "description": "Utility module to scrape questions from the VEX Robotics Q&A.",
-    "keywords": [
-        "vex",
-        "vex robotics",
-        "qna",
-        "archive"
-    ],
+    "license": "ISC",
     "main": "dist/src/index.js",
     "scripts": {
         "test": "jest",
@@ -23,8 +19,6 @@
         "*.ts": "yarn lint --fix",
         "**/*": "prettier --write --ignore-unknown"
     },
-    "author": "battlesqui_d",
-    "license": "ISC",
     "dependencies": {
         "cheerio": "^1.0.0-rc.3",
         "node-fetch": "^2.6.7",
@@ -37,9 +31,8 @@
     "devDependencies": {
         "@types/cheerio": "^0.22.22",
         "@types/jest": "^29.5.3",
-        "@types/ms": "^0.7.31",
+        "@types/node": "^20.4.8",
         "@types/node-fetch": "^2.5.7",
-        "@types/node-fetch-cache": "^3.0.0",
         "@types/pino": "^7.0.5",
         "@typescript-eslint/eslint-plugin": "^5.10.1",
         "@typescript-eslint/parser": "^5.10.1",
@@ -59,5 +52,11 @@
         "dist/**/*"
     ],
     "types": "dist/index.d.ts",
-    "packageManager": "yarn@3.6.1"
+    "packageManager": "yarn@3.6.1",
+    "keywords": [
+        "vex",
+        "vex robotics",
+        "qna",
+        "scrape"
+    ]
 }
