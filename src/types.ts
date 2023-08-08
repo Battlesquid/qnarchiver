@@ -1,4 +1,4 @@
-import { DEFAULT_PROGRAMS } from "./modules/constants";
+import { Constants } from "./modules/constants";
 
 export interface Question {
     /**
@@ -84,4 +84,4 @@ export interface Question {
 
 export type Season = `${number}-${number}`;
 
-export type Program = (typeof DEFAULT_PROGRAMS)[number];
+export type Program = (typeof Constants.DEFAULT_PROGRAMS)[number];

@@ -1,7 +1,7 @@
+import { Constants } from "./constants";
 import { Logger } from "pino";
 import { Question, Season } from "../types";
 import { AttemptResult, attempt, nsToMsElapsed, sleep } from "../util";
-import { CURRENT_YEAR } from "./constants";
 import { extractPageCount, extractQuestion, extractPageQuestions, unleak } from "./extractors";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
 import fetch from "node-fetch";
@@ -57,8 +57,8 @@ export const fetchQuestion = async (url: QnaIdUrl): Promise<Question | null> => 
 };
 
 export const fetchCurrentSeason = async (logger?: Logger): Promise<Season> => {
-    const newSeason = await pingQna("VRC", `${CURRENT_YEAR}-${CURRENT_YEAR + 1}`);
-    const currentSeason: Season = newSeason ? `${CURRENT_YEAR}-${CURRENT_YEAR + 1}` : `${CURRENT_YEAR - 1}-${CURRENT_YEAR}`;
+    const newSeason = await pingQna("VRC", `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`);
+    const currentSeason: Season = newSeason ? `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}` : `${Constants.CURRENT_YEAR - 1}-${Constants.CURRENT_YEAR}`;
     logger?.trace(
         {
             label: "fetchCurrentSeason",

@@ -1,6 +1,6 @@
 import { Logger } from "pino";
 import { Program, Season } from "../types";
-import { DEFAULT_PROGRAMS } from "./constants";
+import { Constants } from "./constants";
 import { fetchPagesForSeasons, pingQna } from "./fetchers";
 import { QnaPageUrl } from "./parsing";
 
@@ -43,7 +43,7 @@ const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace
 
     if (Array.isArray(filters)) {
         const uniqueSeasons = unique(filters);
-        for (const program of DEFAULT_PROGRAMS) {
+        for (const program of Constants.DEFAULT_PROGRAMS) {
             await verifyQnasExist(program, uniqueSeasons);
             if (program === "Judging") {
                 programs.push(program);
