@@ -7,7 +7,7 @@ A set of utilities focused on scraping the [VEX Robotics Q&A](https://www.robote
 ### Retreiving All Questions
 
 ```ts
-import { getAllQuestions } from "vex-qna-scraper";
+import { getAllQuestions } from "vex-qna-archiver";
 
 (async () => {
     const questions = await getAllQuestions();
@@ -17,7 +17,7 @@ import { getAllQuestions } from "vex-qna-scraper";
 ### Retreiving and Filtering Questions
 
 ```ts
-import { getQuestions } from "vex-qna-scraper";
+import { getQuestions } from "vex-qna-archiver";
 
 (async () => {
     // gets all questions from the current season
@@ -36,7 +36,7 @@ import { getQuestions } from "vex-qna-scraper";
 ### Retrieving Unanswered Questions
 
 ```ts
-import { getUnansweredQuestions } from "vex-qna-scraper";
+import { getUnansweredQuestions } from "vex-qna-archiver";
 
 (async () => {
     const questions = await getUnansweredQuestions();
