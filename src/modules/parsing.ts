@@ -4,7 +4,7 @@ interface BaseQnaUrlParams {
 }
 
 interface QnaUrlIdParams extends BaseQnaUrlParams {
-    id: number;
+    id: string;
 }
 
 interface QnaUrlPageParams extends BaseQnaUrlParams {
@@ -29,7 +29,7 @@ export const parseQnaUrlWithId = (url: QnaIdUrl): QnaUrlIdParams => {
     return {
         program: parsed.program,
         season: parsed.season,
-        id: parseInt(parsed.id)
+        id: parsed.id
     };
 };
 
