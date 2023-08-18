@@ -3,7 +3,7 @@ import { Logger } from "pino";
 import { Question, Season } from "../types";
 import { AttemptResult, attempt, nsToMsElapsed, sleep } from "../util";
 import { extractPageCount, extractQuestion, extractPageQuestions, unleak } from "./extractors";
-import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage, validateQnaUrl } from "./parsing";
+import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
 import fetch from "node-fetch";
 
 const ITERATIVE_OFFSET_INTERVAL = 10;
@@ -26,7 +26,7 @@ export const getHtml = async (url: string, logger?: Logger): Promise<HtmlRespons
     }
     return {
         redirected: response.redirected,
-        url: response.redirected ? response.url : url,
+        url: response.url,
         html: unleak(await response.text())
     };
 };
