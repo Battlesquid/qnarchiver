@@ -4,7 +4,7 @@ export interface Question {
     /**
      * The question's numerical ID.
      */
-    id: number;
+    id: string;
 
     /**
      * The url of the question.

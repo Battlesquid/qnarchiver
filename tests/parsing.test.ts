@@ -2,7 +2,7 @@ import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithId, b
 
 const TEST_SEASON = "2023-2024";
 const TEST_PROGRAM = "VRC";
-const TEST_QUESTION_ID = 1591;
+const TEST_QUESTION_ID = "1591";
 const TEST_PAGE_NUM = 1;
 
 const VALID_HOME_URL: QnaHomeUrl = `https://www.robotevents.com/${TEST_PROGRAM}/${TEST_SEASON}/QA`;
