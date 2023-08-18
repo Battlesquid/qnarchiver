@@ -3,10 +3,18 @@ import { Logger } from "pino";
 import { Question, Season } from "../types";
 import { AttemptResult, attempt, nsToMsElapsed, sleep } from "../util";
 import { extractPageCount, extractQuestion, extractPageQuestions, unleak } from "./extractors";
-import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
+import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage, validateQnaUrl } from "./parsing";
 import fetch from "node-fetch";
 
-export const getHtml = async (url: string, logger?: Logger): Promise<string | null> => {
+const ITERATIVE_OFFSET_INTERVAL = 10;
+
+type HtmlResponse = {
+    redirected: boolean;
+    html: string;
+    url: string;
+};
+
+export const getHtml = async (url: string, logger?: Logger): Promise<HtmlResponse | null> => {
     logger?.trace(`Fetching HTML from ${url}.`);
     const response = await fetch(url);
     if (!response.ok) {
@@ -16,7 +24,11 @@ export const getHtml = async (url: string, logger?: Logger): Promise<string | nu
         });
         return null;
     }
-    return unleak(await response.text());
+    return {
+        redirected: response.redirected,
+        url: response.redirected ? response.url : url,
+        html: unleak(await response.text())
+    };
 };
 
 export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<number | null> => {
@@ -24,7 +36,10 @@ export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<
     if (html === null) {
         return null;
     }
-    const pageCount = extractPageCount({ url, html });
+    const pageCount = extractPageCount({
+        url,
+        html: html.html
+    });
     logger?.trace(
         {
             label: "fetchPageCount",
@@ -53,7 +68,7 @@ export const fetchQuestion = async (url: QnaIdUrl): Promise<Question | null> => 
     if (html === null) {
         return null;
     }
-    return extractQuestion({ url, html });
+    return extractQuestion({ url, html: html.html });
 };
 
 export const fetchCurrentSeason = async (logger?: Logger): Promise<Season> => {
@@ -103,7 +118,7 @@ export const fetchQuestionsFromPage = async (url: QnaPageUrl, logger?: Logger): 
     if (html === null) {
         return null;
     }
-    const urls = extractPageQuestions({ url, html });
+    const urls = extractPageQuestions({ url, html: html.html });
     logger?.trace({ urls }, `Extracted ${urls.length} urls from ${url}`);
     const results = await Promise.allSettled(urls.map(fetchQuestion));
     const passed: Question[] = [],
@@ -161,4 +176,48 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logge
     });
     logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
     return success;
+};
+
+const fetchQuestionRange = (ids: number[], logger?: Logger): Promise<Question | null>[] => {
+    return ids.map(async (id) => {
+        const page = await getHtml(`https://www.robotevents.com/VRC/2020-2021/QA/${id}`, logger);
+        if (page === null) {
+            return null;
+        }
+
+        return extractQuestion({
+            html: page.html,
+            url: page.url as QnaIdUrl
+        });
+    });
+};
+
+const BATCH_COUNT = 10;
+
+export const fetchQuestionsIterative = async (logger?: Logger): Promise<Question[]> => {
+    let batchFailed = false;
+    let range = [...Array(BATCH_COUNT).keys()].map((n) => n + 1);
+
+    const data: Question[] = [];
+    while (!batchFailed) {
+        logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
+        const results = await Promise.allSettled(fetchQuestionRange(range, logger));
+        let failures = 0;
+        for (const result of results) {
+            if (result.status === "fulfilled" && result.value !== null) {
+                data.push(result.value);
+            } else {
+                failures++;
+            }
+        }
+        if (failures === BATCH_COUNT) {
+            logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
+            batchFailed = true;
+        } else {
+            range = range.map((n) => (n += ITERATIVE_OFFSET_INTERVAL));
+        }
+        await sleep(1500);
+    }
+
+    return data;
 };
