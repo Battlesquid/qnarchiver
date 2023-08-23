@@ -199,6 +199,7 @@ export const fetchQuestionsIterative = async (logger?: Logger): Promise<Question
     let range = [...Array(BATCH_COUNT).keys()].map((n) => n + 1);
 
     const data: Question[] = [];
+    const startTime = process.hrtime.bigint();
     while (!batchFailed) {
         logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
         const results = await Promise.allSettled(fetchQuestionRange(range, logger));
@@ -218,6 +219,10 @@ export const fetchQuestionsIterative = async (logger?: Logger): Promise<Question
         }
         await sleep(1500);
     }
+
+    const elapsed = new Date(nsToMsElapsed(startTime));
+    logger?.info(`Scraped ${data.length} questions`);
+    logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
 
     return data;
 };
