@@ -1,4 +1,4 @@
-# vex-qna-scraper
+# vex-qna-archiver
 
 A set of utilities focused on scraping the [VEX Robotics Q&A](https://www.robotevents.com/VRC/2023-2024/QA/).
 

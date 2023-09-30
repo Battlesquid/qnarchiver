@@ -6,8 +6,6 @@ import { extractPageCount, extractQuestion, extractPageQuestions, unleak } from 
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
 import fetch from "node-fetch";
 
-const ITERATIVE_OFFSET_INTERVAL = 10;
-
 type HtmlResponse = {
     redirected: boolean;
     html: string;
@@ -192,11 +190,12 @@ const fetchQuestionRange = (ids: number[], logger?: Logger): Promise<Question | 
     });
 };
 
-const BATCH_COUNT = 10;
+const ITERATIVE_BATCH_COUNT = 10;
+const ITERATIVE_INTERVAL = 10;
 
 export const fetchQuestionsIterative = async (logger?: Logger): Promise<Question[]> => {
     let batchFailed = false;
-    let range = [...Array(BATCH_COUNT).keys()].map((n) => n + 1);
+    let range = [...Array(ITERATIVE_BATCH_COUNT).keys()].map((n) => n + 1);
 
     const data: Question[] = [];
     while (!batchFailed) {
@@ -210,11 +209,11 @@ export const fetchQuestionsIterative = async (logger?: Logger): Promise<Question
                 failures++;
             }
         }
-        if (failures === BATCH_COUNT) {
+        if (failures === ITERATIVE_BATCH_COUNT) {
             logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
             batchFailed = true;
         } else {
-            range = range.map((n) => (n += ITERATIVE_OFFSET_INTERVAL));
+            range = range.map((n) => (n += ITERATIVE_INTERVAL));
         }
         await sleep(1500);
     }

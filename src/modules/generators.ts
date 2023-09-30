@@ -12,7 +12,7 @@ export type ProgramFilters = {
 };
 export type QnaFilters = ProgramFilters | YearFilters;
 
-const verifyQnaExists = async (program: string, season: Season): Promise<void> => {
+export const verifyQnaExists = async (program: string, season: Season): Promise<void> => {
     const match = season.match(/(?<start>\d{4})-(?<end>\d{4})/);
     if (!match?.groups) {
         throw Error(`${season} does not match the format '{year}-{year}'.`);
@@ -22,7 +22,7 @@ const verifyQnaExists = async (program: string, season: Season): Promise<void> =
         throw Error(`${season} does not match the format '{year}-{year + 1}'`);
     }
 
-    const exists = pingQna(program, season);
+    const exists = await pingQna(program, season);
     if (!exists) {
         throw Error(`Unable to find a ${program} Q&A for the ${season} season`);
     }
