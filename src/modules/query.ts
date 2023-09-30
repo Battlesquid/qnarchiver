@@ -1,7 +1,6 @@
 import { Logger } from "pino";
 import { Question } from "../types";
-import { Constants } from "./constants";
-import { fetchCurrentSeason, fetchQuestionsFromPages } from "./fetchers";
+import { fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative } from "./fetchers";
 import { QnaFilters, getScrapingUrls } from "./generators";
 
 /**
@@ -31,5 +30,5 @@ export const getQuestions = async (filters?: QnaFilters, logger?: Logger): Promi
  * @returns All questions from every season.
  */
 export const getAllQuestions = async (logger?: Logger): Promise<Question[]> => {
-    return getQuestions(Constants.DEFAULT_SEASONS, logger);
+    return fetchQuestionsIterative(logger);
 };
