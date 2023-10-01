@@ -30,5 +30,6 @@ export const getQuestions = async (filters?: QnaFilters, logger?: Logger): Promi
  * @returns All questions from every season.
  */
 export const getAllQuestions = async (logger?: Logger): Promise<Question[]> => {
-    return fetchQuestionsIterative(logger);
+    const result = await fetchQuestionsIterative({ logger });
+    return result.questions;
 };

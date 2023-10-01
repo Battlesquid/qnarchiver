@@ -193,25 +193,38 @@ const fetchQuestionRange = (ids: number[], logger?: Logger): Promise<Question | 
 const ITERATIVE_BATCH_COUNT = 10;
 const ITERATIVE_INTERVAL = 10;
 
-export const fetchQuestionsIterative = async (logger?: Logger): Promise<Question[]> => {
+type IterativeFetchResult = {
+    last: Question | null;
+    questions: Question[];
+};
+
+type IterativeFetchOptions = {
+    start?: number;
+    logger?: Logger;
+};
+
+export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): Promise<IterativeFetchResult> => {
+    const start = options?.start !== undefined ? options.start - 1 : 0;
     let batchFailed = false;
-    let range = [...Array(ITERATIVE_BATCH_COUNT).keys()].map((n) => n + 1);
+    let range = [...Array(ITERATIVE_BATCH_COUNT).keys()].map((n) => start - 1 + n + 1);
 
     const data: Question[] = [];
     const startTime = process.hrtime.bigint();
+    let lastFulfilled: Question | null = null;
     while (!batchFailed) {
-        logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
-        const results = await Promise.allSettled(fetchQuestionRange(range, logger));
+        options?.logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
+        const results = await Promise.allSettled(fetchQuestionRange(range, options?.logger));
         let failures = 0;
         for (const result of results) {
             if (result.status === "fulfilled" && result.value !== null) {
                 data.push(result.value);
+                lastFulfilled = result.value;
             } else {
                 failures++;
             }
         }
         if (failures === ITERATIVE_BATCH_COUNT) {
-            logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
+            options?.logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
             batchFailed = true;
         } else {
             range = range.map((n) => (n += ITERATIVE_INTERVAL));
@@ -220,8 +233,11 @@ export const fetchQuestionsIterative = async (logger?: Logger): Promise<Question
     }
 
     const elapsed = new Date(nsToMsElapsed(startTime));
-    logger?.info(`Scraped ${data.length} questions`);
-    logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
+    options?.logger?.info(`Scraped ${data.length} questions`);
+    options?.logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
 
-    return data;
+    return {
+        last: lastFulfilled,
+        questions: data
+    };
 };
