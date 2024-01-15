@@ -18,7 +18,7 @@
     "scripts": {
         "test": "jest",
         "clean": "rm -rf dist/",
-        "build": "yarn clean && yarn tsc",
+        "build": "yarn tsc",
         "lint": "eslint . --ext .ts",
         "linkbuild": "yarn build && yarn link",
         "relink": "yarn unlink && yarn linkbuild",
@@ -31,7 +31,7 @@
     ],
     "dependencies": {
         "cheerio": "^1.0.0-rc.3",
-        "node-fetch": "^2.6.7",
+        "got-scraping": "^4.0.3",
         "pino": "^8.14.2"
     },
     "devDependencies": {
