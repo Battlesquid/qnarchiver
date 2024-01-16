@@ -56,9 +56,6 @@ export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<
 export const pingQna = async (program: string, season: string, logger?: Logger): Promise<boolean> => {
     const url = buildHomeQnaUrl({ program, season });
     const response = await gotScraping(url);
-    gotScraping({
-        retry: { statusCodes: [] }
-    });
     logger?.trace({
         exists: response.ok,
         label: "pingQna",
