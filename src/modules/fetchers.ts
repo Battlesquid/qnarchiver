@@ -65,8 +65,8 @@ export const pingQna = async (program: string, season: string, logger?: Logger):
     return response.ok;
 };
 
-export const fetchQuestion = async (url: QnaIdUrl): Promise<Question | null> => {
-    const html = await getHtml(url);
+export const fetchQuestion = async (url: QnaIdUrl, logger?: Logger): Promise<Question | null> => {
+    const html = await getHtml(url, logger);
     if (html === null) {
         return null;
     }
@@ -122,7 +122,7 @@ export const fetchQuestionsFromPage = async (url: QnaPageUrl, logger?: Logger): 
     }
     const urls = extractPageQuestions({ url, html: html.html });
     logger?.trace({ urls }, `Extracted ${urls.length} urls from ${url}`);
-    const results = await Promise.allSettled(urls.map(fetchQuestion));
+    const results = await Promise.allSettled(urls.map((u) => fetchQuestion(u, logger)));
     const passed: Question[] = [],
         failed: QnaIdUrl[] = [];
     results.forEach((result, i) => {
