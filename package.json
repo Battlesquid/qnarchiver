@@ -22,7 +22,7 @@
         "lint": "eslint . --ext .ts",
         "linkbuild": "yarn build && yarn link",
         "relink": "yarn unlink && yarn linkbuild",
-        "postinstall": "husky install"
+        "prepare": "husky install"
     },
     "files": [
         "dist/src/**/**"
