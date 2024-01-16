@@ -1,31 +1,35 @@
 import { Constants } from "./constants";
 import { Logger } from "pino";
 import { Question, Season } from "../types";
-import { AttemptResult, attempt, nsToMsElapsed, sleep } from "../util";
 import { extractPageCount, extractQuestion, extractPageQuestions, unleak } from "./extractors";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
-import fetch from "node-fetch";
+import { gotScraping } from "../util/got";
+import { AttemptResult, attempt } from "../util/attempt";
+import { sleep, nsToMsElapsed } from "../util/timing";
 
 type HtmlResponse = {
-    redirected: boolean;
     html: string;
     url: string;
 };
 
 export const getHtml = async (url: string, logger?: Logger): Promise<HtmlResponse | null> => {
     logger?.trace(`Fetching HTML from ${url}.`);
-    const response = await fetch(url);
+    const response = await gotScraping(url, {
+        retry: {
+            limit: 3,
+            statusCodes: [403]
+        }
+    });
     if (!response.ok) {
-        logger?.error(`Fetch for ${url} returned ${response.status}: ${response.statusText}`, {
+        logger?.error(`Fetch for ${url} returned ${response.statusCode}: ${response.statusMessage}`, {
             url,
-            status: response.status
+            status: response.statusCode
         });
         return null;
     }
     return {
-        redirected: response.redirected,
         url: response.url,
-        html: unleak(await response.text())
+        html: unleak(response.body)
     };
 };
 
@@ -51,7 +55,7 @@ export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<
 
 export const pingQna = async (program: string, season: string, logger?: Logger): Promise<boolean> => {
     const url = buildHomeQnaUrl({ program, season });
-    const response = await fetch(url);
+    const response = await gotScraping(url);
     logger?.trace({
         exists: response.ok,
         label: "pingQna",
@@ -99,7 +103,7 @@ export const fetchPagesForSeasons = async (program: string, seasons: Season[], l
         const url = buildHomeQnaUrl({ program, season });
         const pageCount = await fetchPageCount(url, logger);
         if (pageCount === null) {
-            logger?.warn(`Warning: unable to retreive page count for ${url}`);
+            logger?.warn(`Warning: unable to retrieve page count for ${url}`);
             continue;
         }
         for (let page = 1; page <= pageCount; page++) {
@@ -145,7 +149,7 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logge
             name: url,
             job: attempt({
                 attempts: 3,
-                callback: () => fetchQuestionsFromPage(url),
+                callback: () => fetchQuestionsFromPage(url, logger),
                 logger
             })
         };
