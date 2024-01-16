@@ -22,9 +22,7 @@
         "lint": "eslint . --ext .ts",
         "linkbuild": "yarn build && yarn link",
         "relink": "yarn unlink && yarn linkbuild",
-        "postinstall": "husky install",
-        "prepack": "pinst --disable",
-        "postpack": "pinst --enable"
+        "postinstall": "husky install"
     },
     "files": [
         "dist/src/**/*"
@@ -35,7 +33,7 @@
         "pino": "^8.17.2"
     },
     "engines": {
-        "node": "18.9.0"
+        "node": "20.11.0"
     },
     "devDependencies": {
         "@types/cheerio": "^0.22.22",
@@ -51,7 +49,6 @@
         "lint-staged": "^13.2.3",
         "np": "^9.2.0",
         "pino-pretty": "^10.2.0",
-        "pinst": "^3.0.0",
         "prettier": "3.0.1",
         "ts-jest": "^29.1.1",
         "ts-node": "^10.9.1",
@@ -63,7 +60,8 @@
         "**/*": "prettier --write --ignore-unknown"
     },
     "volta": {
-        "node": "18.9.0",
-        "yarn": "1.22.19"
+        "node": "20.11.0",
+        "yarn": "1.22.19",
+        "npm": "10.3.0"
     }
 }
