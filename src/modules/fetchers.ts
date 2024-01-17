@@ -3,9 +3,7 @@ import { Logger } from "pino";
 import { Question, Season } from "../types";
 import { extractPageCount, extractQuestion, extractPageQuestions, unleak } from "./extractors";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
-import { gotScraping } from "../util/got";
-import { AttemptResult, attempt } from "../util/attempt";
-import { sleep, nsToMsElapsed } from "../util/timing";
+import { getScrapingClient, sleep, nsToMsElapsed, attempt, AttemptResult } from "../util";
 
 type HtmlResponse = {
     html: string;
@@ -14,12 +12,8 @@ type HtmlResponse = {
 
 export const getHtml = async (url: string, logger?: Logger): Promise<HtmlResponse | null> => {
     logger?.trace(`Fetching HTML from ${url}.`);
-    const response = await gotScraping(url, {
-        retry: {
-            limit: 3,
-            statusCodes: [403]
-        }
-    });
+    const client = getScrapingClient();
+    const response = await client.fetch(url, { logger });
     if (!response.ok) {
         logger?.error(`Fetch for ${url} returned ${response.statusCode}: ${response.statusMessage}`, {
             url,
@@ -55,14 +49,15 @@ export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<
 
 export const pingQna = async (program: string, season: string, logger?: Logger): Promise<boolean> => {
     const url = buildHomeQnaUrl({ program, season });
-    const response = await gotScraping(url);
+    const client = getScrapingClient();
+    const ok = client.ping(url, { logger });
     logger?.trace({
-        exists: response.ok,
+        exists: ok,
         label: "pingQna",
         program,
         season
     });
-    return response.ok;
+    return ok;
 };
 
 export const fetchQuestion = async (url: QnaIdUrl, logger?: Logger): Promise<Question | null> => {
