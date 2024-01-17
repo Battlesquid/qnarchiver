@@ -49,7 +49,7 @@ class GotScrapingClient {
                 }
             });
         } catch (e) {
-            logger?.trace(`Error fetching ${url}, marking session asbad`);
+            logger?.trace(`Error fetching ${url}, marking session as bad`);
             session.markBad();
             throw e;
         }
