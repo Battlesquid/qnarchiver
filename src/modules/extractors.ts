@@ -8,8 +8,8 @@ export interface ScrapedPage<U extends string = string> {
     html: string;
 }
 
-const unformat = (str: string): string => {
-    return str
+const unformat = (str: string | undefined | null): string => {
+    return (str ?? "")
         .split(/\n/g)
         .map((n) => n.trim())
         .filter(Boolean)
@@ -17,16 +17,23 @@ const unformat = (str: string): string => {
 };
 
 // https://bugs.chromium.org/p/v8/issues/detail?id=2869
-export const unleak = (str: string | undefined): string => {
-    return (" " + str).slice(1);
+export const unleak = (str: string | undefined | null): string => {
+    return (" " + (str ?? "")).slice(1);
 };
 
-const selectHtml = ($: cheerio.Root, selector: string | cheerio.Element): string => {
-    return unleak(unformat($(selector).text()));
+type HtmlPresenceRequired = "Required";
+type HtmlPresenceOptional = "Optional";
+type HtmlPresence = HtmlPresenceRequired | HtmlPresenceOptional;
+type SelectHtml<T extends HtmlPresence> = T extends HtmlPresenceRequired ? string : string | null;
+
+const selectHtml = <T extends HtmlPresence = "Optional">($: cheerio.Root, selector: string | cheerio.Element): SelectHtml<T> => {
+    const text = unleak(unformat($(selector).text()));
+    return (text.trim() === "" ? null : text) as SelectHtml<T>;
 };
 
-const selectRawHtml = ($: cheerio.Root, selector: string | cheerio.Element): string => {
-    return unleak(unformat($(selector).html() ?? ""));
+const selectRawHtml = <T extends HtmlPresence>($: cheerio.Root, selector: string | cheerio.Element): SelectHtml<T> => {
+    const html = unleak(unformat($(selector).html()));
+    return (html.trim() === "" ? null : html) as SelectHtml<T>;
 };
 
 export const extractPageQuestions = ({ html }: ScrapedPage<QnaPageUrl>): QnaIdUrl[] => {
@@ -47,17 +54,17 @@ export const extractQuestion = ({ html, url }: ScrapedPage<QnaIdUrl>): Question 
     const $ = cheerioModule.load(html);
 
     const { id, program, season } = parseQnaUrlWithId(url);
-    const author = selectHtml($, SELECTORS.AUTHOR);
-    const title = selectHtml($, SELECTORS.TITLE);
-    const question = selectHtml($, SELECTORS.QUESTION);
-    const questionRaw = selectRawHtml($, SELECTORS.QUESTION);
+    const author = selectHtml<"Required">($, SELECTORS.AUTHOR);
+    const title = selectHtml<"Required">($, SELECTORS.TITLE);
+    const question = selectHtml<"Required">($, SELECTORS.QUESTION);
+    const questionRaw = selectRawHtml<"Required">($, SELECTORS.QUESTION);
     const answer = selectHtml($, SELECTORS.ANSWER);
     const answerRaw = selectRawHtml($, SELECTORS.ANSWER);
     const askedTimestamp = selectHtml($, SELECTORS.ASKED_TIMESTAMP);
-    const askedTimestampMs = new Date(askedTimestamp).getTime();
+    const askedTimestampMs = askedTimestamp !== null ? new Date(askedTimestamp).getTime() : null;
     const answeredTimestamp = selectHtml($, SELECTORS.ANSWERED_TIMESTAMP);
-    const answeredTimestampMs = new Date(answeredTimestamp).getTime();
-    const answered = Boolean(answer);
+    const answeredTimestampMs = answeredTimestamp !== null ? new Date(answeredTimestamp).getTime() : null;
+    const answered = answer !== null;
     const tags = $(SELECTORS.TAGS)
         .map((_i, el) => unleak($(el).text().trim()))
         .get();
