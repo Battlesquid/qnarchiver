@@ -39,12 +39,12 @@ export interface Question {
     /**
      * The answer to the question.
      */
-    answer: string;
+    answer: string | null;
 
     /**
      * The answer content as raw html
      */
-    answerRaw: string;
+    answerRaw: string | null;
 
     /**
      * The season this question was asked in (e.g., 2022-2023).
@@ -54,22 +54,22 @@ export interface Question {
     /**
      * When this question was asked (in the format DD-Mon-YYYY).
      */
-    askedTimestamp: string;
+    askedTimestamp: string | null;
 
     /**
      * {@link askedTimestamp} in milliseconds.
      */
-    askedTimestampMs: number;
+    askedTimestampMs: number | null;
 
     /**
      * When this question was answered (in the format DD-Mon-YYYY).
      */
-    answeredTimestamp: string;
+    answeredTimestamp: string | null;
 
     /**
      * {@link answeredTimestamp} in milliseconds.
      */
-    answeredTimestampMs: number;
+    answeredTimestampMs: number | null;
 
     /**
      * Whether the question was answered.
