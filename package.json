@@ -36,6 +36,9 @@
     "engines": {
         "node": "20.11.0"
     },
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org"
+    },
     "devDependencies": {
         "@types/cheerio": "^0.22.22",
         "@types/jest": "^29.5.3",
