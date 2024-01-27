@@ -304,6 +304,12 @@ const handleIterativeBatch = (results: PromiseSettledResult<Question | null>[]):
     return { questions, last, lastUnanswered, failed: failures === results.length };
 };
 
+/**
+ * Fetches questions iteratively. Instead of generating a list of urls to scrape, we iterate through IDs in batches
+ * until a batch fails, resulting in faster scraping. Best for when you want a dump of all Q&As.
+ * @param options Options for defining an optional logger and start point
+ * @returns Object containing the fecthed Q&As, plus some additional utility data
+ */
 export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): Promise<IterativeFetchResult> => {
     const start = options?.start !== undefined ? options.start - 1 : 1;
     let batchFailed = false;
