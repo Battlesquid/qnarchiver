@@ -1,10 +1,11 @@
 import { Logger } from "pino";
 import { Question } from "../types";
-import { fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative } from "./fetchers";
+import { IterativeFetchResult, fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative } from "./fetchers";
 import { QnaFilters, getScrapingUrls } from "./generators";
 
 /**
  * Utility wrapper around {@link getQuestions} that gets unanswered questions for the current season.
+ * @param logger Optional {@link Logger}
  * @returns All questions that have not been answered.
  */
 export const getUnansweredQuestions = async (logger?: Logger): Promise<Question[]> => {
@@ -15,6 +16,7 @@ export const getUnansweredQuestions = async (logger?: Logger): Promise<Question[
 /**
  * Get questions with an optional filter.
  * @param filters Optional filters to limit the results retreived. Defaults to filtering by current season.
+ * @param logger Optional {@link Logger}
  * @returns All questions that passed the filter.
  */
 export const getQuestions = async (filters?: QnaFilters, logger?: Logger): Promise<Question[]> => {
@@ -27,9 +29,20 @@ export const getQuestions = async (filters?: QnaFilters, logger?: Logger): Promi
 
 /**
  * Gets all questions.
- * @returns All questions from every season.
+ * @param logger Optional {@link Logger}
+ * @returns All questions from every season, plus some additional utility data.
  */
-export const getAllQuestions = async (logger?: Logger): Promise<Question[]> => {
-    const result = await fetchQuestionsIterative({ logger });
-    return result.questions;
+export const getAllQuestions = async (logger?: Logger): Promise<IterativeFetchResult> => {
+    return await fetchQuestionsIterative({ logger });
+};
+
+/**
+ * Gets questions from a specified start point. For the purpose of getting updated
+ * Q&A data, this is more performant, compared to fetching all questions from a season.
+ * @param start The ID to start fetching questions from
+ * @param logger Optional {@link Logger}
+ * @returns All questions from the specified start point, plus some additional utility data.
+ */
+export const getQuestionsFromStart = async (start: number, logger?: Logger): Promise<IterativeFetchResult> => {
+    return await fetchQuestionsIterative({ start, logger });
 };

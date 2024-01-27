@@ -5,11 +5,17 @@ import { extractPageCount, extractQuestion, extractPageQuestions, unleak } from 
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
 import { getScrapingClient, sleep, nsToMsElapsed, attempt, AttemptResult } from "../util";
 
-type HtmlResponse = {
+export type HtmlResponse = {
     html: string;
     url: string;
 };
 
+/**
+ *
+ * @param url The url to get
+ * @param logger Optional {@link Logger}
+ * @returns The html for the given url
+ */
 export const getHtml = async (url: string, logger?: Logger): Promise<HtmlResponse | null> => {
     logger?.trace(`Fetching HTML from ${url}.`);
     const client = getScrapingClient();
@@ -27,6 +33,12 @@ export const getHtml = async (url: string, logger?: Logger): Promise<HtmlRespons
     };
 };
 
+/**
+ * Fetches the page count for the given Q&A
+ * @param url The Q&A to fetch the page count from
+ * @param logger Optional {@link Logger}
+ * @returns The page count for the given Q&A
+ */
 export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<number | null> => {
     const html = await getHtml(url);
     if (html === null) {
@@ -47,6 +59,13 @@ export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<
     return pageCount;
 };
 
+/**
+ * Checks whether a Q&A for a given program and seasons exists
+ * @param program The program of the Q&A to ping
+ * @param season The season of the Q&A to ping
+ * @param logger Optional {@link Logger}
+ * @returns true if the Q&A exists, false if it does not
+ */
 export const pingQna = async (program: string, season: string, logger?: Logger): Promise<boolean> => {
     const url = buildHomeQnaUrl({ program, season });
     const client = getScrapingClient();
@@ -60,6 +79,12 @@ export const pingQna = async (program: string, season: string, logger?: Logger):
     return ok;
 };
 
+/**
+ * Fetches data for a given Q&A
+ * @param url The url of the Q&A
+ * @param logger Optional {@link Logger}
+ * @returns The Q&A data from the page
+ */
 export const fetchQuestion = async (url: QnaIdUrl, logger?: Logger): Promise<Question | null> => {
     const html = await getHtml(url, logger);
     if (html === null) {
@@ -68,6 +93,11 @@ export const fetchQuestion = async (url: QnaIdUrl, logger?: Logger): Promise<Que
     return extractQuestion({ url, html: html.html });
 };
 
+/**
+ * Fetches the current season.
+ * @param logger Optional {@link Logger}
+ * @returns The current season
+ */
 export const fetchCurrentSeason = async (logger?: Logger): Promise<Season> => {
     const newSeason = await pingQna("VRC", `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`);
     const currentSeason: Season = newSeason ? `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}` : `${Constants.CURRENT_YEAR - 1}-${Constants.CURRENT_YEAR}`;
@@ -81,6 +111,11 @@ export const fetchCurrentSeason = async (logger?: Logger): Promise<Season> => {
     return currentSeason;
 };
 
+/**
+ * Generates a list of all seasons to date
+ * @param logger Optional {@link Logger}
+ * @returns A list of all seasons to date
+ */
 export const fetchAllSeasons = async (logger?: Logger): Promise<Season[]> => {
     const allSeasons: Season[] = [];
     const [start] = (await fetchCurrentSeason()).split("-");
@@ -92,6 +127,13 @@ export const fetchAllSeasons = async (logger?: Logger): Promise<Season[]> => {
     return allSeasons;
 };
 
+/**
+ * Generates a list of urls with the given program and list of seasons
+ * @param program The program to generate pages with
+ * @param seasons The seasons to generate pages with
+ * @param logger Optional {@link Logger}
+ * @returns A list of urls corresponding to the given program and seasons
+ */
 export const fetchPagesForSeasons = async (program: string, seasons: Season[], logger?: Logger): Promise<QnaPageUrl[]> => {
     const urls: QnaPageUrl[] = [];
     for (const season of seasons) {
@@ -108,8 +150,14 @@ export const fetchPagesForSeasons = async (program: string, seasons: Season[], l
     return urls;
 };
 
-type PageQuestionsResults = [Question[], string[]];
+export type PageQuestionsResults = [Question[], string[]];
 
+/**
+ * Fetches Q&A data from the given url
+ * @param url The Q&A page url to extract data from
+ * @param logger Optional {@link Logger}
+ * @returns Q&A data from the given page
+ */
 export const fetchQuestionsFromPage = async (url: QnaPageUrl, logger?: Logger): Promise<PageQuestionsResults | null> => {
     const html = await getHtml(url);
     if (html === null) {
@@ -135,6 +183,13 @@ type Job<T> = {
     job: T;
 };
 
+/**
+ * Fetches Q&A data from a list of urls
+ * @param urls The urls to fetch Q&A data from
+ * @param logger Optional {@link Logger}
+ * @param interval Time in milliseconds to wait in between requests
+ * @returns All Q&A data from the specified pages
+ */
 export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logger, interval = 1500): Promise<Question[]> => {
     const jobs: Job<Promise<AttemptResult<PageQuestionsResults | null>>>[] = [];
     const startTime = process.hrtime.bigint();
@@ -192,35 +247,84 @@ const fetchQuestionRange = (ids: number[], logger?: Logger): Promise<Question | 
 const ITERATIVE_BATCH_COUNT = 10;
 const ITERATIVE_INTERVAL = 10;
 
-type IterativeFetchResult = {
+export type IterativeFetchResult = {
+    /**
+     * The last question that was fetched successfully
+     */
     last: Question | null;
+
+    /**
+     * The first unanswered question that was fetched successfully
+     * Useful for calling {@link fetchQuestionsIterative} at a later point,
+     * with start set to the question ID.
+     */
+    lastUnanswered: Question | null;
+
+    /**
+     * The list of questions fetched
+     */
     questions: Question[];
 };
 
-type IterativeFetchOptions = {
+export type IterativeFetchOptions = {
+    /**
+     * The ID to start scraping questions from
+     */
     start?: number;
+
+    /**
+     * Optional {@link Logger}
+     */
     logger?: Logger;
 };
 
+type IterativeBatchResult = {
+    questions: Question[];
+    last: Question | null;
+    lastUnanswered: Question | null;
+    failures: number;
+};
+
+const handleIterativeBatch = (results: PromiseSettledResult<Question | null>[]): IterativeBatchResult => {
+    const questions: Question[] = [];
+    let failures = 0;
+    let last: Question | null = null;
+    let lastUnanswered: Question | null = null;
+    for (const result of results) {
+        if (result.status === "rejected") {
+            failures++;
+            continue;
+        }
+        if (result.value === null) {
+            continue;
+        }
+        questions.push(result.value);
+        last = result.value;
+        if (!result.value.answered) {
+            lastUnanswered = result.value;
+        }
+    }
+    return { questions, last, lastUnanswered, failures };
+};
+
 export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): Promise<IterativeFetchResult> => {
-    const start = options?.start !== undefined ? options.start - 1 : 0;
+    const start = options?.start !== undefined ? options.start - 1 : 1;
     let batchFailed = false;
     let range = [...Array(ITERATIVE_BATCH_COUNT).keys()].map((n) => start - 1 + n + 1);
 
     const data: Question[] = [];
     const startTime = process.hrtime.bigint();
     let lastFulfilled: Question | null = null;
+    let lastUnansweredFulfilled: Question | null = null;
+
     while (!batchFailed) {
         options?.logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
         const results = await Promise.allSettled(fetchQuestionRange(range, options?.logger));
-        let failures = 0;
-        for (const result of results) {
-            if (result.status === "fulfilled" && result.value !== null) {
-                data.push(result.value);
-                lastFulfilled = result.value;
-            } else {
-                failures++;
-            }
+        const { questions, failures, last, lastUnanswered } = handleIterativeBatch(results);
+        data.push(...questions);
+        lastFulfilled = last;
+        if (lastUnansweredFulfilled === null) {
+            lastUnansweredFulfilled = lastUnanswered;
         }
         if (failures === ITERATIVE_BATCH_COUNT) {
             options?.logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
@@ -237,6 +341,7 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
 
     return {
         last: lastFulfilled,
+        lastUnanswered: lastUnansweredFulfilled,
         questions: data
     };
 };

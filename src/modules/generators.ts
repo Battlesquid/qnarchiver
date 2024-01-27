@@ -12,6 +12,11 @@ export type ProgramFilters = {
 };
 export type QnaFilters = ProgramFilters | YearFilters;
 
+/**
+ * Verifies that a Q&A exists, actually validating that the program and season is valid before calling {@link pingQna}
+ * @param program The program of the Q&A to check
+ * @param season The season of the Q&A to check
+ */
 export const verifyQnaExists = async (program: string, season: Season): Promise<void> => {
     const match = season.match(/(?<start>\d{4})-(?<end>\d{4})/);
     if (!match?.groups) {
@@ -72,6 +77,12 @@ const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace
     return [programs, seasons];
 };
 
+/**
+ * Generate a list of urls to scrape based on the given filters
+ * @param filters The filters to apply
+ * @param logger Optional {@link Logger}
+ * @returns A list of urls to scrape that match the given filters
+ */
 export const getScrapingUrls = async (filters?: QnaFilters, logger?: Logger): Promise<QnaPageUrl[]> => {
     const [programs, seasons] = await processFilters(filters, logger);
     const urls: QnaPageUrl[] = [];
