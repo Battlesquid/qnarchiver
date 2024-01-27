@@ -282,7 +282,7 @@ type IterativeBatchResult = {
     questions: Question[];
     last: Question | null;
     lastUnanswered: Question | null;
-    failures: number;
+    failed: boolean;
 };
 
 const handleIterativeBatch = (results: PromiseSettledResult<Question | null>[]): IterativeBatchResult => {
@@ -291,11 +291,8 @@ const handleIterativeBatch = (results: PromiseSettledResult<Question | null>[]):
     let last: Question | null = null;
     let lastUnanswered: Question | null = null;
     for (const result of results) {
-        if (result.status === "rejected") {
+        if (result.status === "rejected" || result.value === null) {
             failures++;
-            continue;
-        }
-        if (result.value === null) {
             continue;
         }
         questions.push(result.value);
@@ -304,7 +301,7 @@ const handleIterativeBatch = (results: PromiseSettledResult<Question | null>[]):
             lastUnanswered = result.value;
         }
     }
-    return { questions, last, lastUnanswered, failures };
+    return { questions, last, lastUnanswered, failed: failures === results.length };
 };
 
 export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): Promise<IterativeFetchResult> => {
@@ -320,19 +317,19 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
     while (!batchFailed) {
         options?.logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
         const results = await Promise.allSettled(fetchQuestionRange(range, options?.logger));
-        const { questions, failures, last, lastUnanswered } = handleIterativeBatch(results);
+        const { questions, failed, last, lastUnanswered } = handleIterativeBatch(results);
         data.push(...questions);
         lastFulfilled = last;
         if (lastUnansweredFulfilled === null) {
             lastUnansweredFulfilled = lastUnanswered;
         }
-        if (failures === ITERATIVE_BATCH_COUNT) {
+        if (failed) {
             options?.logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
             batchFailed = true;
         } else {
             range = range.map((n) => (n += ITERATIVE_INTERVAL));
+            await sleep(1500);
         }
-        await sleep(1500);
     }
 
     const elapsed = new Date(nsToMsElapsed(startTime));
