@@ -1,4 +1,8 @@
 {
+    "hooks": {
+        "before:init": ["yarn test"],
+        "after:bump": ["yarn clean", "yarn build"]
+    },
     "github": {
         "release": true,
         "web": true,
