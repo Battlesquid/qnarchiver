@@ -21,7 +21,7 @@ export const getHtml = async (url: string, logger?: Logger): Promise<HtmlRespons
     const client = getScrapingClient();
     const response = await client.fetch(url, { logger });
     if (!response.ok) {
-        logger?.error(`Fetch for ${url} returned ${response.statusCode}: ${response.statusMessage}`, {
+        logger?.trace(`Fetch for ${url} returned ${response.statusCode}: ${response.statusMessage}`, {
             url,
             status: response.statusCode
         });

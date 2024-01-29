@@ -29,7 +29,7 @@ class GotScrapingClient {
     }
 
     async fetch(url: string, options?: FetchOptions): Promise<Response<string>> {
-        const logger = options?.logger;
+        const logger = options?.logger?.child({ label: "gotScrapingClientFetch" });
         const pool = await this.getSessionPool();
         const session = await pool.getSession();
 
