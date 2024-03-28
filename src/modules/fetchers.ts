@@ -14,7 +14,7 @@ export type HtmlResponse = {
  *
  * @param url The url to get
  * @param logger Optional {@link Logger}
- * @returns The html for the given url
+ * @returns The html for the given url. Also returns the final response url, which is useful in the case of redirects
  */
 export const getHtml = async (url: string, logger?: Logger): Promise<HtmlResponse | null> => {
     logger?.trace(`Fetching HTML from ${url}.`);
@@ -45,7 +45,7 @@ export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<
         return null;
     }
     const pageCount = extractPageCount({
-        url,
+        url: html.url as QnaHomeUrl,
         html: html.html
     });
     logger?.trace(
@@ -90,7 +90,7 @@ export const fetchQuestion = async (url: QnaIdUrl, logger?: Logger): Promise<Que
     if (html === null) {
         return null;
     }
-    return extractQuestion({ url, html: html.html });
+    return extractQuestion({ url: html.url as QnaIdUrl, html: html.html });
 };
 
 /**
@@ -163,7 +163,7 @@ export const fetchQuestionsFromPage = async (url: QnaPageUrl, logger?: Logger): 
     if (html === null) {
         return null;
     }
-    const urls = extractPageQuestions({ url, html: html.html });
+    const urls = extractPageQuestions({ url: html.url as QnaPageUrl, html: html.html });
     logger?.trace({ urls }, `Extracted ${urls.length} urls from ${url}`);
     const results = await Promise.allSettled(urls.map((u) => fetchQuestion(u, logger)));
     const passed: Question[] = [],
