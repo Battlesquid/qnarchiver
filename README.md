@@ -26,7 +26,7 @@ import { getQuestions } from "vex-qna-archiver";
     // get all questions from a particular season
     const specificSeasonQuestions = await getQuestions(["2020-2021"]);
 
-    // get all VEXU questions from the 2020-2021 season
+    // get all VURC questions from the 2020-2021 season
     const filteredQuestions = await getQuestions({
         VURC: ["2020-2021"]
     });
