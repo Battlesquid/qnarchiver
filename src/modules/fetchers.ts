@@ -325,8 +325,10 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
         const results = await Promise.allSettled(fetchQuestionRange(range, options?.logger));
         const { questions, failed, last, lastUnanswered } = handleIterativeBatch(results);
         data.push(...questions);
-        lastFulfilled = last;
-        if (lastUnansweredFulfilled === null) {
+        if (last !== null) {
+            lastFulfilled = last;
+        }
+        if (lastUnanswered !== null) {
             lastUnansweredFulfilled = lastUnanswered;
         }
         if (failed) {
