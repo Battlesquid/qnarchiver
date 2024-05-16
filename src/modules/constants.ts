@@ -5,7 +5,7 @@ export interface IConstants {
     START_YEAR: number;
     CURRENT_YEAR: number;
     QUESTION_PROPERTIES: readonly (keyof Question)[];
-    DEFAULT_PROGRAMS: ["VRC", "VEXU", "VIQRC", "Judging"];
+    DEFAULT_PROGRAMS: ["V5RC", "VURC", "VIQRC", "Judging"];
 }
 
 export const Constants: IConstants = {
@@ -36,5 +36,5 @@ export const Constants: IConstants = {
             "tags"
         ] satisfies readonly (keyof Question)[];
     },
-    DEFAULT_PROGRAMS: ["VRC", "VEXU", "VIQRC", "Judging"]
+    DEFAULT_PROGRAMS: ["V5RC", "VURC", "VIQRC", "Judging"]
 };

@@ -17,7 +17,7 @@ export interface Question {
     author: string;
 
     /**
-     * The program this question was asked in (e.g., VRC, VEXU, etc).
+     * The program this question was asked in (e.g., V5RC, VURC, etc).
      */
     program: string;
 
