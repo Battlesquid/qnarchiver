@@ -1,6 +1,6 @@
 # vex-qna-archiver
 
-A set of utilities focused on scraping the [VEX Robotics Q&A](https://www.robotevents.com/VRC/2023-2024/QA/).
+A set of utilities focused on scraping the [VEX Robotics Q&A](https://www.robotevents.com/V5RC/2024-2025/QA/).
 
 ## Usage
 
@@ -26,9 +26,9 @@ import { getQuestions } from "vex-qna-archiver";
     // get all questions from a particular season
     const specificSeasonQuestions = await getQuestions(["2020-2021"]);
 
-    // get all VEXU questions from the 2020-2021 season
+    // get all VURC questions from the 2020-2021 season
     const filteredQuestions = await getQuestions({
-        VEXU: ["2020-2021"]
+        VURC: ["2020-2021"]
     });
 })();
 ```

@@ -99,7 +99,7 @@ export const fetchQuestion = async (url: QnaIdUrl, logger?: Logger): Promise<Que
  * @returns The current season
  */
 export const fetchCurrentSeason = async (logger?: Logger): Promise<Season> => {
-    const newSeason = await pingQna("VRC", `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`);
+    const newSeason = await pingQna("V5RC", `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`);
     const currentSeason: Season = newSeason ? `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}` : `${Constants.CURRENT_YEAR - 1}-${Constants.CURRENT_YEAR}`;
     logger?.trace(
         {
@@ -232,7 +232,7 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logge
 
 const fetchQuestionRange = (ids: number[], logger?: Logger): Promise<Question | null>[] => {
     return ids.map(async (id) => {
-        const page = await getHtml(`https://www.robotevents.com/VRC/2020-2021/QA/${id}`, logger);
+        const page = await getHtml(`https://www.robotevents.com/V5RC/2020-2021/QA/${id}`, logger);
         if (page === null) {
             return null;
         }
