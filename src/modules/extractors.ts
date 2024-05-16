@@ -88,3 +88,8 @@ export const extractQuestion = ({ html, url }: ScrapedPage<QnaIdUrl>): Question 
         tags
     };
 };
+
+export const extractReadOnly = ({ html }: ScrapedPage<QnaHomeUrl>): boolean => {
+    const $ = cheerioModule.load(html);
+    return selectHtml($, SELECTORS.READONLY) !== null;
+};

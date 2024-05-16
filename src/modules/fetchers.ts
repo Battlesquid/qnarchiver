@@ -1,7 +1,7 @@
 import { Constants } from "./constants";
 import { Logger } from "pino";
 import { Question, Season } from "../types";
-import { extractPageCount, extractQuestion, extractPageQuestions, unleak } from "./extractors";
+import { extractPageCount, extractQuestion, extractPageQuestions, unleak, extractReadOnly } from "./extractors";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
 import { getScrapingClient, sleep, nsToMsElapsed, attempt, AttemptResult } from "../util";
 
@@ -14,7 +14,7 @@ export type HtmlResponse = {
  *
  * @param url The url to get
  * @param logger Optional {@link Logger}
- * @returns The html for the given url. Also returns the final response url, which is useful in the case of redirects
+ * @returns The html for the given url
  */
 export const getHtml = async (url: string, logger?: Logger): Promise<HtmlResponse | null> => {
     logger?.trace(`Fetching HTML from ${url}.`);
@@ -45,7 +45,7 @@ export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<
         return null;
     }
     const pageCount = extractPageCount({
-        url: html.url as QnaHomeUrl,
+        url,
         html: html.html
     });
     logger?.trace(
@@ -90,7 +90,7 @@ export const fetchQuestion = async (url: QnaIdUrl, logger?: Logger): Promise<Que
     if (html === null) {
         return null;
     }
-    return extractQuestion({ url: html.url as QnaIdUrl, html: html.html });
+    return extractQuestion({ url, html: html.html });
 };
 
 /**
@@ -163,7 +163,7 @@ export const fetchQuestionsFromPage = async (url: QnaPageUrl, logger?: Logger): 
     if (html === null) {
         return null;
     }
-    const urls = extractPageQuestions({ url: html.url as QnaPageUrl, html: html.html });
+    const urls = extractPageQuestions({ url, html: html.html });
     logger?.trace({ urls }, `Extracted ${urls.length} urls from ${url}`);
     const results = await Promise.allSettled(urls.map((u) => fetchQuestion(u, logger)));
     const passed: Question[] = [],
@@ -280,28 +280,20 @@ export type IterativeFetchOptions = {
 
 type IterativeBatchResult = {
     questions: Question[];
-    last: Question | null;
-    lastUnanswered: Question | null;
     failed: boolean;
 };
 
 const handleIterativeBatch = (results: PromiseSettledResult<Question | null>[]): IterativeBatchResult => {
     const questions: Question[] = [];
     let failures = 0;
-    let last: Question | null = null;
-    let lastUnanswered: Question | null = null;
     for (const result of results) {
         if (result.status === "rejected" || result.value === null) {
             failures++;
             continue;
         }
         questions.push(result.value);
-        last = result.value;
-        if (!result.value.answered) {
-            lastUnanswered = result.value;
-        }
     }
-    return { questions, last, lastUnanswered, failed: failures === results.length };
+    return { questions, failed: failures === results.length };
 };
 
 /**
@@ -310,27 +302,19 @@ const handleIterativeBatch = (results: PromiseSettledResult<Question | null>[]):
  * @param options Options for defining an optional logger and start point
  * @returns Object containing the fecthed Q&As, plus some additional utility data
  */
-export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): Promise<IterativeFetchResult> => {
+export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): Promise<Question[]> => {
     const start = options?.start !== undefined ? options.start - 1 : 1;
     let batchFailed = false;
     let range = [...Array(ITERATIVE_BATCH_COUNT).keys()].map((n) => start - 1 + n + 1);
 
     const data: Question[] = [];
     const startTime = process.hrtime.bigint();
-    let lastFulfilled: Question | null = null;
-    let lastUnansweredFulfilled: Question | null = null;
 
     while (!batchFailed) {
         options?.logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
         const results = await Promise.allSettled(fetchQuestionRange(range, options?.logger));
-        const { questions, failed, last, lastUnanswered } = handleIterativeBatch(results);
+        const { questions, failed } = handleIterativeBatch(results);
         data.push(...questions);
-        if (last !== null) {
-            lastFulfilled = last;
-        }
-        if (lastUnanswered !== null) {
-            lastUnansweredFulfilled = lastUnanswered;
-        }
         if (failed) {
             options?.logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
             batchFailed = true;
@@ -344,9 +328,13 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
     options?.logger?.info(`Scraped ${data.length} questions`);
     options?.logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
 
-    return {
-        last: lastFulfilled,
-        lastUnanswered: lastUnansweredFulfilled,
-        questions: data
-    };
+    return data;
+};
+
+export const checkIfReadOnly = async (program: string, season: Season, logger?: Logger): Promise<boolean | null> => {
+    const html = await getHtml(`https://www.robotevents.com/${program}/${season}/QA/`, logger);
+    if (html === null) {
+        return null;
+    }
+    return extractReadOnly({ url: html.url as QnaHomeUrl, html: html.html });
 };

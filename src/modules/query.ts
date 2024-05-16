@@ -1,6 +1,6 @@
 import { Logger } from "pino";
-import { Question } from "../types";
-import { IterativeFetchResult, fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative } from "./fetchers";
+import { Question, Season } from "../types";
+import { fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative } from "./fetchers";
 import { QnaFilters, getScrapingUrls } from "./generators";
 
 /**
@@ -30,9 +30,9 @@ export const getQuestions = async (filters?: QnaFilters, logger?: Logger): Promi
 /**
  * Gets all questions.
  * @param logger Optional {@link Logger}
- * @returns All questions from every season, plus some additional utility data.
+ * @returns All questions from every season
  */
-export const getAllQuestions = async (logger?: Logger): Promise<IterativeFetchResult> => {
+export const getAllQuestions = async (logger?: Logger): Promise<Question[]> => {
     return await fetchQuestionsIterative({ logger });
 };
 
@@ -43,6 +43,30 @@ export const getAllQuestions = async (logger?: Logger): Promise<IterativeFetchRe
  * @param logger Optional {@link Logger}
  * @returns All questions from the specified start point, plus some additional utility data.
  */
-export const getQuestionsFromStart = async (start: number, logger?: Logger): Promise<IterativeFetchResult> => {
+export const getQuestionsFromStart = async (start: number, logger?: Logger): Promise<Question[]> => {
     return await fetchQuestionsIterative({ start, logger });
+};
+
+/**
+ * Gets the oldest unanswered question for a given season.
+ * @param questions The questions to operate on
+ * @param season The season in which to search in
+ * @returns The oldest question asked for the given season, if any
+ */
+export const getOldestUnansweredQuestion = (questions: Question[], season: Season): Question | undefined => {
+    const data = [...questions];
+    data.sort((q1, q2) => (q1.askedTimestampMs ?? 0) - (q2.askedTimestampMs ?? 0));
+    return data.find((q) => q.answered === false && q.season === season && !q.title.startsWith("[archived]"));
+};
+
+/**
+ * Gets the oldest unanswered question for a given season.
+ * @param questions The questions to operate on
+ * @param season The season in which to search in
+ * @returns The oldest question asked for the given season, if any
+ */
+export const getOldestQuestion = (questions: Question[], season: Season): Question | undefined => {
+    const data = [...questions];
+    data.sort((q1, q2) => (q1.askedTimestampMs ?? 0) - (q2.askedTimestampMs ?? 0));
+    return data.find((q) => q.season === season && !q.title.startsWith("[archived]"));
 };
