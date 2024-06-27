@@ -54,12 +54,12 @@ export interface Question {
     /**
      * When this question was asked (in the format DD-Mon-YYYY).
      */
-    askedTimestamp: string | null;
+    askedTimestamp: string;
 
     /**
      * {@link askedTimestamp} in milliseconds.
      */
-    askedTimestampMs: number | null;
+    askedTimestampMs: number;
 
     /**
      * When this question was answered (in the format DD-Mon-YYYY).

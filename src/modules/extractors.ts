@@ -60,8 +60,8 @@ export const extractQuestion = ({ html, url }: ScrapedPage<QnaIdUrl>): Question 
     const questionRaw = selectRawHtml<"Required">($, SELECTORS.QUESTION);
     const answer = selectHtml($, SELECTORS.ANSWER);
     const answerRaw = selectRawHtml($, SELECTORS.ANSWER);
-    const askedTimestamp = selectHtml($, SELECTORS.ASKED_TIMESTAMP);
-    const askedTimestampMs = askedTimestamp !== null ? new Date(askedTimestamp).getTime() : null;
+    const askedTimestamp = selectHtml<"Required">($, SELECTORS.ASKED_TIMESTAMP);
+    const askedTimestampMs = new Date(askedTimestamp).getTime();
     const answeredTimestamp = selectHtml($, SELECTORS.ANSWERED_TIMESTAMP);
     const answeredTimestampMs = answeredTimestamp !== null ? new Date(answeredTimestamp).getTime() : null;
     const answered = answer !== null;
