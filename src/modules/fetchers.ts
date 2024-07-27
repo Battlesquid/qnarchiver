@@ -249,21 +249,14 @@ const ITERATIVE_INTERVAL = 10;
 
 export type IterativeFetchResult = {
     /**
-     * The last question that was fetched successfully
-     */
-    last: Question | null;
-
-    /**
-     * The first unanswered question that was fetched successfully
-     * Useful for calling {@link fetchQuestionsIterative} at a later point,
-     * with start set to the question ID.
-     */
-    lastUnanswered: Question | null;
-
-    /**
      * The list of questions fetched
      */
     questions: Question[];
+
+    /**
+     * The ids of the questions that could not be retrieved
+     */
+    failures: string[];
 };
 
 export type IterativeFetchOptions = {
@@ -281,19 +274,21 @@ export type IterativeFetchOptions = {
 type IterativeBatchResult = {
     questions: Question[];
     failed: boolean;
+    failures: string[];
 };
 
-const handleIterativeBatch = (results: PromiseSettledResult<Question | null>[]): IterativeBatchResult => {
+const handleIterativeBatch = (range: number[], results: PromiseSettledResult<Question | null>[]): IterativeBatchResult => {
     const questions: Question[] = [];
-    let failures = 0;
-    for (const result of results) {
+    const failures: string[] = [];
+    for (let i = 0; i < results.length; i++) {
+        const result = results[i];
         if (result.status === "rejected" || result.value === null) {
-            failures++;
+            failures.push(`${range[i]}`);
             continue;
         }
         questions.push(result.value);
     }
-    return { questions, failed: failures === results.length };
+    return { questions, failed: failures.length === results.length, failures };
 };
 
 /**
@@ -302,33 +297,36 @@ const handleIterativeBatch = (results: PromiseSettledResult<Question | null>[]):
  * @param options Options for defining an optional logger and start point
  * @returns Object containing the fecthed Q&As, plus some additional utility data
  */
-export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): Promise<Question[]> => {
-    const start = options?.start !== undefined ? options.start - 1 : 1;
+export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): Promise<IterativeFetchResult> => {
+    const start = options?.start !== undefined ? Math.max(options.start, 1) : 1;
     let batchFailed = false;
-    let range = [...Array(ITERATIVE_BATCH_COUNT).keys()].map((n) => start - 1 + n + 1);
+    let range = [...Array(ITERATIVE_BATCH_COUNT).keys()].map((n) => start + n);
 
-    const data: Question[] = [];
+    const questions: Question[] = [];
+    const failures: string[] = [];
     const startTime = process.hrtime.bigint();
 
     while (!batchFailed) {
         options?.logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
         const results = await Promise.allSettled(fetchQuestionRange(range, options?.logger));
-        const { questions, failed } = handleIterativeBatch(results);
-        data.push(...questions);
+        const { questions: batchQuestions, failed, failures: batchFailures } = handleIterativeBatch(range, results);
+        questions.push(...batchQuestions);
         if (failed) {
             options?.logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
             batchFailed = true;
         } else {
-            range = range.map((n) => (n += ITERATIVE_INTERVAL));
+            failures.push(...batchFailures);
+            range = range.map((n) => n + ITERATIVE_INTERVAL);
             await sleep(1500);
         }
     }
 
     const elapsed = new Date(nsToMsElapsed(startTime));
-    options?.logger?.info(`Scraped ${data.length} questions`);
+    options?.logger?.info(`Scraped ${questions.length} questions`);
+    options?.logger?.info(`Failed getting ${failures.length} questions`);
     options?.logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
 
-    return data;
+    return { questions, failures };
 };
 
 export const checkIfReadOnly = async (program: string, season: Season, logger?: Logger): Promise<boolean | null> => {
