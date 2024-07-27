@@ -1,6 +1,6 @@
 import { Logger } from "pino";
 import { Question, Season } from "../types";
-import { fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative } from "./fetchers";
+import { fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative, IterativeFetchResult } from "./fetchers";
 import { QnaFilters, getScrapingUrls } from "./generators";
 
 /**
@@ -32,7 +32,7 @@ export const getQuestions = async (filters?: QnaFilters, logger?: Logger): Promi
  * @param logger Optional {@link Logger}
  * @returns All questions from every season
  */
-export const getAllQuestions = async (logger?: Logger): Promise<Question[]> => {
+export const getAllQuestions = async (logger?: Logger): Promise<IterativeFetchResult> => {
     return await fetchQuestionsIterative({ logger });
 };
 
@@ -43,7 +43,7 @@ export const getAllQuestions = async (logger?: Logger): Promise<Question[]> => {
  * @param logger Optional {@link Logger}
  * @returns All questions from the specified start point, plus some additional utility data.
  */
-export const getQuestionsFromStart = async (start: number, logger?: Logger): Promise<Question[]> => {
+export const getQuestionsFromStart = async (start: number, logger?: Logger): Promise<IterativeFetchResult> => {
     return await fetchQuestionsIterative({ start, logger });
 };
 
@@ -67,6 +67,6 @@ export const getOldestUnansweredQuestion = (questions: Question[], season: Seaso
  */
 export const getOldestQuestion = (questions: Question[], season: Season): Question | undefined => {
     const data = [...questions];
-    data.sort((q1, q2) => (q1.askedTimestampMs ?? 0) - (q2.askedTimestampMs ?? 0));
+    data.sort((q1, q2) => q1.askedTimestampMs - q2.askedTimestampMs);
     return data.find((q) => q.season === season && !q.title.startsWith("[archived]"));
 };

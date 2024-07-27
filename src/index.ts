@@ -5,4 +5,5 @@ export * from "./modules/constants";
 export * from "./modules/extractors";
 export * from "./modules/generators";
 export * from "./modules/parsing";
+export * from "./util";
 export * from "./types";
