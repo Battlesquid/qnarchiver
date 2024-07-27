@@ -230,7 +230,7 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logge
     return success;
 };
 
-const fetchQuestionRange = (ids: number[], logger?: Logger): Promise<Question | null>[] => {
+export const fetchQuestionRange = (ids: number[], logger?: Logger): Promise<Question | null>[] => {
     return ids.map(async (id) => {
         const page = await getHtml(`https://www.robotevents.com/V5RC/2020-2021/QA/${id}`, logger);
         if (page === null) {
@@ -244,8 +244,8 @@ const fetchQuestionRange = (ids: number[], logger?: Logger): Promise<Question | 
     });
 };
 
-const ITERATIVE_BATCH_COUNT = 10;
-const ITERATIVE_INTERVAL = 10;
+export const ITERATIVE_BATCH_COUNT = 10;
+export const ITERATIVE_INTERVAL = 10;
 
 export type IterativeFetchResult = {
     /**
@@ -271,13 +271,13 @@ export type IterativeFetchOptions = {
     logger?: Logger;
 };
 
-type IterativeBatchResult = {
+export type IterativeBatchResult = {
     questions: Question[];
     failed: boolean;
     failures: string[];
 };
 
-const handleIterativeBatch = (range: number[], results: PromiseSettledResult<Question | null>[]): IterativeBatchResult => {
+export const handleIterativeBatch = (range: number[], results: PromiseSettledResult<Question | null>[]): IterativeBatchResult => {
     const questions: Question[] = [];
     const failures: string[] = [];
     for (let i = 0; i < results.length; i++) {
