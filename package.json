@@ -2,7 +2,7 @@
     "name": "vex-qna-archiver",
     "author": "battlesqui_d",
     "description": "Utility package to scrape questions from the VEX Robotics Q&A.",
-    "version": "10.0.0",
+    "version": "10.1.1",
     "license": "GPL-3.0",
     "repository": {
         "type": "git",
@@ -33,9 +33,6 @@
         "got-scraping": "^4.0.3",
         "pino": "^8.17.2"
     },
-    "engines": {
-        "node": "20.11.0"
-    },
     "publishConfig": {
         "registry": "https://registry.npmjs.org"
     },
@@ -63,7 +60,7 @@
     },
     "volta": {
         "node": "20.11.0",
-        "yarn": "1.22.19",
+        "yarn": "1.22.22",
         "npm": "10.3.0"
     }
 }
