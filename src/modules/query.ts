@@ -55,7 +55,7 @@ export const getQuestionsFromStart = async (start: number, logger?: Logger): Pro
  */
 export const getOldestUnansweredQuestion = (questions: Question[], season: Season): Question | undefined => {
     const data = [...questions];
-    data.sort((q1, q2) => (q1.askedTimestampMs ?? 0) - (q2.askedTimestampMs ?? 0));
+    data.sort((q1, q2) => q1.askedTimestampMs - q2.askedTimestampMs + (parseInt(q1.id) - parseInt(q2.id)));
     return data.find((q) => q.answered === false && q.season === season && !q.title.startsWith("[archived]"));
 };
 
@@ -67,6 +67,6 @@ export const getOldestUnansweredQuestion = (questions: Question[], season: Seaso
  */
 export const getOldestQuestion = (questions: Question[], season: Season): Question | undefined => {
     const data = [...questions];
-    data.sort((q1, q2) => q1.askedTimestampMs - q2.askedTimestampMs);
+    data.sort((q1, q2) => q1.askedTimestampMs - q2.askedTimestampMs + (parseInt(q1.id) - parseInt(q2.id)));
     return data.find((q) => q.season === season && !q.title.startsWith("[archived]"));
 };
