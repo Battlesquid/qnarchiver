@@ -8,5 +8,13 @@
         "curly": "error",
         "quotes": ["error", "double"],
         "@typescript-eslint/explicit-function-return-type": "error"
-    }
+    },
+    "overrides": [
+        {
+            "files": ["*.test.ts", "tests/data/*.ts"],
+            "rules": {
+                "sonarjs/no-duplicate-string": "off"
+            }
+        }
+    ]
 }
