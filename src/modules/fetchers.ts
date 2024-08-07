@@ -3,7 +3,7 @@ import { Logger } from "pino";
 import { Question, Season } from "../types";
 import { extractPageCount, extractQuestion, extractPageQuestions, unleak, extractReadOnly } from "./extractors";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
-import { getScrapingClient, sleep, nsToMsElapsed, attempt, AttemptResult } from "../util";
+import { getScrapingClient, sleep, nsToMsElapsed, attempt, AttemptResult, FetchOptions } from "../util";
 
 export type HtmlResponse = {
     html: string;
@@ -16,12 +16,12 @@ export type HtmlResponse = {
  * @param logger Optional {@link Logger}
  * @returns The html for the given url
  */
-export const getHtml = async (url: string, logger?: Logger): Promise<HtmlResponse | null> => {
-    logger?.trace(`Fetching HTML from ${url}.`);
+export const getHtml = async (url: string, options?: FetchOptions): Promise<HtmlResponse | null> => {
+    options?.logger?.trace(`Fetching HTML from ${url}.`);
     const client = getScrapingClient();
-    const response = await client.fetch(url, { logger });
+    const response = await client.fetch(url, options);
     if (!response.ok) {
-        logger?.trace(
+        options?.logger?.trace(
             {
                 url,
                 status: response.statusCode,
@@ -43,8 +43,8 @@ export const getHtml = async (url: string, logger?: Logger): Promise<HtmlRespons
  * @param logger Optional {@link Logger}
  * @returns The page count for the given Q&A
  */
-export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<number | null> => {
-    const html = await getHtml(url);
+export const fetchPageCount = async (url: QnaHomeUrl, options?: FetchOptions): Promise<number | null> => {
+    const html = await getHtml(url, options);
     if (html === null) {
         return null;
     }
@@ -52,7 +52,7 @@ export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<
         url,
         html: html.html
     });
-    logger?.trace(
+    options?.logger?.trace(
         {
             label: "fetchPageCount",
             pageCount,
@@ -70,11 +70,11 @@ export const fetchPageCount = async (url: QnaHomeUrl, logger?: Logger): Promise<
  * @param logger Optional {@link Logger}
  * @returns true if the Q&A exists, false if it does not
  */
-export const pingQna = async (program: string, season: string, logger?: Logger): Promise<boolean> => {
+export const pingQna = async (program: string, season: string, options?: FetchOptions): Promise<boolean> => {
     const url = buildHomeQnaUrl({ program, season });
     const client = getScrapingClient();
-    const ok = client.ping(url, { logger });
-    logger?.trace({
+    const ok = client.ping(url, options);
+    options?.logger?.trace({
         exists: ok,
         label: "pingQna",
         program,
@@ -89,8 +89,8 @@ export const pingQna = async (program: string, season: string, logger?: Logger):
  * @param logger Optional {@link Logger}
  * @returns The Q&A data from the page
  */
-export const fetchQuestion = async (url: QnaIdUrl, logger?: Logger): Promise<Question | null> => {
-    const html = await getHtml(url, logger);
+export const fetchQuestion = async (url: QnaIdUrl, options?: FetchOptions): Promise<Question | null> => {
+    const html = await getHtml(url, options);
     if (html === null) {
         return null;
     }
@@ -102,10 +102,10 @@ export const fetchQuestion = async (url: QnaIdUrl, logger?: Logger): Promise<Que
  * @param logger Optional {@link Logger}
  * @returns The current season
  */
-export const fetchCurrentSeason = async (logger?: Logger): Promise<Season> => {
-    const newSeason = await pingQna("V5RC", `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`);
+export const fetchCurrentSeason = async (options?: FetchOptions): Promise<Season> => {
+    const newSeason = await pingQna("V5RC", `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`, options);
     const currentSeason: Season = newSeason ? `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}` : `${Constants.CURRENT_YEAR - 1}-${Constants.CURRENT_YEAR}`;
-    logger?.trace(
+    options?.logger?.trace(
         {
             label: "fetchCurrentSeason",
             currentSeason
@@ -138,13 +138,13 @@ export const fetchAllSeasons = async (logger?: Logger): Promise<Season[]> => {
  * @param logger Optional {@link Logger}
  * @returns A list of urls corresponding to the given program and seasons
  */
-export const fetchPagesForSeasons = async (program: string, seasons: Season[], logger?: Logger): Promise<QnaPageUrl[]> => {
+export const fetchPagesForSeasons = async (program: string, seasons: Season[], options?: FetchOptions): Promise<QnaPageUrl[]> => {
     const urls: QnaPageUrl[] = [];
     for (const season of seasons) {
         const url = buildHomeQnaUrl({ program, season });
-        const pageCount = await fetchPageCount(url, logger);
+        const pageCount = await fetchPageCount(url, options);
         if (pageCount === null) {
-            logger?.warn(`Warning: unable to retrieve page count for ${url}`);
+            options?.logger?.warn(`Warning: unable to retrieve page count for ${url}`);
             continue;
         }
         for (let page = 1; page <= pageCount; page++) {
@@ -162,14 +162,14 @@ export type PageQuestionsResults = [Question[], string[]];
  * @param logger Optional {@link Logger}
  * @returns Q&A data from the given page
  */
-export const fetchQuestionsFromPage = async (url: QnaPageUrl, logger?: Logger): Promise<PageQuestionsResults | null> => {
+export const fetchQuestionsFromPage = async (url: QnaPageUrl, options?: FetchOptions): Promise<PageQuestionsResults | null> => {
     const html = await getHtml(url);
     if (html === null) {
         return null;
     }
     const urls = extractPageQuestions({ url, html: html.html });
-    logger?.trace({ urls }, `Extracted ${urls.length} urls from ${url}`);
-    const results = await Promise.allSettled(urls.map((u) => fetchQuestion(u, logger)));
+    options?.logger?.trace({ urls }, `Extracted ${urls.length} urls from ${url}`);
+    const results = await Promise.allSettled(urls.map((u) => fetchQuestion(u, options)));
     const passed: Question[] = [],
         failed: QnaIdUrl[] = [];
     results.forEach((result, i) => {
@@ -194,7 +194,7 @@ type Job<T> = {
  * @param interval Time in milliseconds to wait in between requests
  * @returns All Q&A data from the specified pages
  */
-export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logger, interval = 1500): Promise<Question[]> => {
+export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: FetchOptions, interval = 1500): Promise<Question[]> => {
     const jobs: Job<Promise<AttemptResult<PageQuestionsResults | null>>>[] = [];
     const startTime = process.hrtime.bigint();
 
@@ -203,8 +203,8 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logge
             name: url,
             job: attempt({
                 attempts: 3,
-                callback: () => fetchQuestionsFromPage(url, logger),
-                logger
+                callback: () => fetchQuestionsFromPage(url, options),
+                logger: options?.logger
             })
         };
         jobs.push(job);
@@ -226,20 +226,20 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logge
         }
     });
 
-    logger?.info(
+    options?.logger?.info(
         {
             failedQuestions,
             failedPages
         },
         `${success.length} succeeded, ${failedQuestions.length} questions failed, ${failedPages.length} question pages failed.`
     );
-    logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
+    options?.logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
     return success;
 };
 
-export const fetchQuestionRange = (ids: number[], logger?: Logger): Promise<Question | null>[] => {
+export const fetchQuestionRange = (ids: number[], options?: FetchOptions): Promise<Question | null>[] => {
     return ids.map(async (id) => {
-        const page = await getHtml(`https://www.robotevents.com/V5RC/2020-2021/QA/${id}`, logger);
+        const page = await getHtml(`https://www.robotevents.com/V5RC/2020-2021/QA/${id}`, options);
         if (page === null) {
             return null;
         }
@@ -266,16 +266,11 @@ export type IterativeFetchResult = {
     failures: string[];
 };
 
-export type IterativeFetchOptions = {
+export type IterativeFetchOptions = FetchOptions & {
     /**
      * The ID to start scraping questions from
      */
     start?: number;
-
-    /**
-     * Optional {@link Logger}
-     */
-    logger?: Logger;
 };
 
 export type IterativeBatchResult = {
@@ -315,7 +310,7 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
 
     while (!batchFailed) {
         options?.logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
-        const results = await Promise.allSettled(fetchQuestionRange(range, options?.logger));
+        const results = await Promise.allSettled(fetchQuestionRange(range, options));
         const { questions: batchQuestions, failed, failures: batchFailures } = handleIterativeBatch(range, results);
         questions.push(...batchQuestions);
         if (failed) {
@@ -336,8 +331,8 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
     return { questions, failures };
 };
 
-export const checkIfReadOnly = async (program: string, season: Season, logger?: Logger): Promise<boolean | null> => {
-    const html = await getHtml(`https://www.robotevents.com/${program}/${season}/QA/`, logger);
+export const checkIfReadOnly = async (program: string, season: Season, options?: FetchOptions): Promise<boolean | null> => {
+    const html = await getHtml(`https://www.robotevents.com/${program}/${season}/QA/`, options);
     if (html === null) {
         return null;
     }

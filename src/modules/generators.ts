@@ -3,6 +3,7 @@ import { Program, Season } from "../types";
 import { Constants } from "./constants";
 import { fetchPagesForSeasons, pingQna } from "./fetchers";
 import { QnaPageUrl } from "./parsing";
+import { FetchOptions } from "../util";
 
 const unique = <T>(arr: T[]): T[] => arr.filter((a, i) => arr.indexOf(a) === i);
 
@@ -83,15 +84,15 @@ const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace
  * @param logger Optional {@link Logger}
  * @returns A list of urls to scrape that match the given filters
  */
-export const getScrapingUrls = async (filters?: QnaFilters, logger?: Logger): Promise<QnaPageUrl[]> => {
-    const [programs, seasons] = await processFilters(filters, logger);
+export const getScrapingUrls = async (filters?: QnaFilters, options?: FetchOptions): Promise<QnaPageUrl[]> => {
+    const [programs, seasons] = await processFilters(filters, options?.logger);
     const urls: QnaPageUrl[] = [];
     for (let ci = 0; ci < programs.length; ci++) {
         const program = programs[ci];
         const seasonList = seasons[ci];
-        const pages = await fetchPagesForSeasons(program, seasonList, logger);
+        const pages = await fetchPagesForSeasons(program, seasonList, options);
         urls.push(...pages);
     }
-    logger?.trace({ urls }, `Created ${urls.length} urls that satisfy the provided filters.`);
+    options?.logger?.trace({ urls }, `Created ${urls.length} urls that satisfy the provided filters.`);
     return urls;
 };

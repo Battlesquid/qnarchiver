@@ -1,15 +1,15 @@
-import { Logger } from "pino";
 import { Question, Season } from "../types";
-import { fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative, IterativeFetchResult } from "./fetchers";
+import { fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative, IterativeFetchOptions, IterativeFetchResult } from "./fetchers";
 import { QnaFilters, getScrapingUrls } from "./generators";
+import { FetchOptions } from "../util";
 
 /**
  * Utility wrapper around {@link getQuestions} that gets unanswered questions for the current season.
  * @param logger Optional {@link Logger}
  * @returns All questions that have not been answered.
  */
-export const getUnansweredQuestions = async (logger?: Logger): Promise<Question[]> => {
-    const questions = await getQuestions(undefined, logger);
+export const getUnansweredQuestions = async (options?: FetchOptions): Promise<Question[]> => {
+    const questions = await getQuestions(undefined, options);
     return questions.filter((q) => !q.answered);
 };
 
@@ -19,32 +19,21 @@ export const getUnansweredQuestions = async (logger?: Logger): Promise<Question[
  * @param logger Optional {@link Logger}
  * @returns All questions that passed the filter.
  */
-export const getQuestions = async (filters?: QnaFilters, logger?: Logger): Promise<Question[]> => {
+export const getQuestions = async (filters?: QnaFilters, options?: FetchOptions): Promise<Question[]> => {
     if (filters === undefined) {
-        filters = [await fetchCurrentSeason(logger)];
+        filters = [await fetchCurrentSeason(options)];
     }
-    const urls = await getScrapingUrls(filters, logger);
-    return fetchQuestionsFromPages(urls, logger);
+    const urls = await getScrapingUrls(filters, options);
+    return fetchQuestionsFromPages(urls, options);
 };
 
 /**
- * Gets all questions.
+ * Gets all questions. Includes questions that may not be shown on the Q&A homepage.
  * @param logger Optional {@link Logger}
  * @returns All questions from every season
  */
-export const getAllQuestions = async (logger?: Logger): Promise<IterativeFetchResult> => {
-    return await fetchQuestionsIterative({ logger });
-};
-
-/**
- * Gets questions from a specified start point. For the purpose of getting updated
- * Q&A data, this is more performant, compared to fetching all questions from a season.
- * @param start The ID to start fetching questions from
- * @param logger Optional {@link Logger}
- * @returns All questions from the specified start point, plus some additional utility data.
- */
-export const getQuestionsFromStart = async (start: number, logger?: Logger): Promise<IterativeFetchResult> => {
-    return await fetchQuestionsIterative({ start, logger });
+export const getAllQuestions = async (options?: IterativeFetchOptions): Promise<IterativeFetchResult> => {
+    return await fetchQuestionsIterative(options);
 };
 
 /**
