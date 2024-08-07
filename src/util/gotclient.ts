@@ -59,7 +59,7 @@ class GotScrapingClient {
 
         const hadBadStatus = session.retireOnBlockedStatusCodes(response.statusCode);
         if (hadBadStatus) {
-            logger?.trace(`Warning: Bad status on ${url}, retiring`);
+            logger?.warn(`Warning: Bad status on ${url}, retiring`);
         } else {
             session.setCookiesFromResponse(response);
         }
