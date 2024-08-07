@@ -1,3 +1,3 @@
 export * from "./attempt";
 export * from "./timing";
-export * from "./gotclient";
+export * from "./got_client";
