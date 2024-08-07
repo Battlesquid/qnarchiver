@@ -25,8 +25,7 @@ export const getHtml = async (url: string, logger?: Logger): Promise<HtmlRespons
             {
                 url,
                 status: response.statusCode,
-                headers: response.headers,
-                rawHeaders: response.rawHeaders
+                headers: response.request.options.headers
             },
             `Fetch for ${url} returned ${response.statusCode}: ${response.statusMessage}`
         );
