@@ -2,7 +2,7 @@
     "name": "vex-qna-archiver",
     "author": "battlesqui_d",
     "description": "Utility package to scrape questions from the VEX Robotics Q&A.",
-    "version": "11.1.3",
+    "version": "11.1.4",
     "license": "GPL-3.0",
     "repository": {
         "type": "git",
