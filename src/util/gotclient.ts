@@ -39,6 +39,9 @@ class GotScrapingClient {
             response = await gotScraping(url, {
                 sessionToken: session,
                 useHeaderGenerator: true,
+                headerGeneratorOptions: {
+                    browsers: ["firefox", "chrome", "safari"]
+                },
                 responseType: "text",
                 retry: {
                     limit: 3,
