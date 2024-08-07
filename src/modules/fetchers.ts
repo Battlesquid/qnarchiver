@@ -21,12 +21,15 @@ export const getHtml = async (url: string, logger?: Logger): Promise<HtmlRespons
     const client = getScrapingClient();
     const response = await client.fetch(url, { logger });
     if (!response.ok) {
-        logger?.trace(`Fetch for ${url} returned ${response.statusCode}: ${response.statusMessage}`, {
-            url,
-            status: response.statusCode,
-            headers: response.headers,
-            rawHeaders: response.rawHeaders
-        });
+        logger?.trace(
+            {
+                url,
+                status: response.statusCode,
+                headers: response.headers,
+                rawHeaders: response.rawHeaders
+            },
+            `Fetch for ${url} returned ${response.statusCode}: ${response.statusMessage}`
+        );
         return null;
     }
     return {
@@ -224,10 +227,13 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], logger?: Logge
         }
     });
 
-    logger?.info(`${success.length} succeeded, ${failedQuestions.length} questions failed, ${failedPages.length} question pages failed.`, {
-        failedQuestions,
-        failedPages
-    });
+    logger?.info(
+        {
+            failedQuestions,
+            failedPages
+        },
+        `${success.length} succeeded, ${failedQuestions.length} questions failed, ${failedPages.length} question pages failed.`
+    );
     logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
     return success;
 };
