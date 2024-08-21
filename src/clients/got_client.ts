@@ -2,24 +2,26 @@
 // @ts-ignore Okay because we only import a type.
 import type { GotScraping, Response } from "got-scraping";
 import { SessionPool } from "@crawlee/core";
+import { FetchClient, FetchClientOptions, FetchClientResponse, FetchHtmlResponse } from ".";
+import { unleak } from "../modules/extractors";
 import { Logger } from "pino";
 
-export interface FetchOptions {
-    /**
-     * Optional logger to include
-     */
-    logger?: Logger;
+export type BaseGotClientFetchResponse = {
+    response: Response<string>;
+};
 
+type InternalGotClientFetchResponse = BaseGotClientFetchResponse & {
+    badSession: boolean;
+};
+
+export type GotClientFetchOptions = FetchClientOptions & {
     /**
      * If a session fails, retry once with a new session before giving up.
      */
     trySessionRefresh?: boolean;
-}
-
-type GotClientFetchResult = {
-    response: Response<string>;
-    badSession: boolean;
 };
+
+export type GotClientFetchResponse = BaseGotClientFetchResponse & FetchClientResponse;
 
 // from @crawlee/util
 let gotScraping = (async (...args: Parameters<GotScraping>) => {
@@ -27,8 +29,13 @@ let gotScraping = (async (...args: Parameters<GotScraping>) => {
     return gotScraping(...args);
 }) as GotScraping;
 
-class GotScrapingClient {
+class GotScrapingClient implements FetchClient {
     private sessionPool: SessionPool | null = null;
+
+    constructor(
+        private logger?: Logger,
+        private doSessionRefresh?: boolean
+    ) {}
 
     private async getSessionPool(): Promise<SessionPool> {
         this.sessionPool ??= await SessionPool.open({
@@ -40,11 +47,11 @@ class GotScrapingClient {
         return this.sessionPool;
     }
 
-    async fetch(url: string, options?: FetchOptions): Promise<Response<string>> {
-        const logger = options?.logger?.child({ label: "gotScrapingClientFetch" });
+    async fetch(url: string): Promise<GotClientFetchResponse> {
+        const logger = this.logger?.child({ label: "gotScrapingClientFetch" });
         const pool = await this.getSessionPool();
 
-        const getResponse = async (): Promise<GotClientFetchResult> => {
+        const getResponse = async (): Promise<InternalGotClientFetchResponse> => {
             const session = await pool.getSession();
             let response: Response<string>;
             try {
@@ -82,25 +89,52 @@ class GotScrapingClient {
             }
         };
 
-        const result = await getResponse();
-        if (result.badSession && options?.trySessionRefresh) {
+        const response = await getResponse();
+        const {
+            badSession,
+            response: { body, statusCode: status, ok }
+        } = response;
+        if (badSession && this.doSessionRefresh) {
             logger?.info("Retrying request with new session.");
-            const retryResult = await getResponse();
-            return retryResult.response;
+            const retryResponse = await getResponse();
+            const {
+                response: { body, statusCode: status, ok }
+            } = retryResponse;
+            return { body, status, ok, response: retryResponse.response };
         }
-
-        return result.response;
+        return { body, status, ok, response: response.response };
     }
 
-    async ping(url: string, options?: FetchOptions): Promise<boolean> {
-        const response = await this.fetch(url, options);
+    async getHtml(url: string): Promise<FetchHtmlResponse | null> {
+        this.logger?.trace(`Fetching HTML from ${url}.`);
+        const client = getGotClient();
+        const { response, status, ok } = await client.fetch(url);
+        if (!ok) {
+            this.logger?.trace(
+                {
+                    url,
+                    status,
+                    headers: response.request.options.headers
+                },
+                `Fetch for ${url} returned ${status}: ${status}`
+            );
+            return null;
+        }
+        return {
+            url: response.url,
+            html: unleak(response.body)
+        };
+    }
+
+    async ping(url: string): Promise<boolean> {
+        const response = await this.fetch(url);
         return response.ok;
     }
 }
 
 let client: GotScrapingClient | null = null;
 
-export const getScrapingClient = (): GotScrapingClient => {
+export const getGotClient = (): GotScrapingClient => {
     client ??= new GotScrapingClient();
     return client;
 };

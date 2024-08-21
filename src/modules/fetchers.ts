@@ -1,41 +1,15 @@
 import { Constants } from "./constants";
 import { Logger } from "pino";
 import { Question, Season } from "../types";
-import { extractPageCount, extractQuestion, extractPageQuestions, unleak, extractReadOnly } from "./extractors";
+import { extractPageCount, extractQuestion, extractPageQuestions, extractReadOnly } from "./extractors";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
-import { getScrapingClient, sleep, nsToMsElapsed, attempt, AttemptResult, FetchOptions } from "../util";
+import { sleep, nsToMsElapsed, attempt, AttemptResult } from "../util";
+import { FetchClient, FetchClientOptions, getGotClient } from "../clients";
 
-export type HtmlResponse = {
-    html: string;
-    url: string;
-};
-
-/**
- *
- * @param url The url to get
- * @param logger Optional {@link Logger}
- * @returns The html for the given url
- */
-export const getHtml = async (url: string, options?: FetchOptions): Promise<HtmlResponse | null> => {
-    options?.logger?.trace(`Fetching HTML from ${url}.`);
-    const client = getScrapingClient();
-    const response = await client.fetch(url, options);
-    if (!response.ok) {
-        options?.logger?.trace(
-            {
-                url,
-                status: response.statusCode,
-                headers: response.request.options.headers
-            },
-            `Fetch for ${url} returned ${response.statusCode}: ${response.statusMessage}`
-        );
-        return null;
-    }
-    return {
-        url: response.url,
-        html: unleak(response.body)
-    };
-};
+export interface FetcherOptions {
+    client?: FetchClient;
+    logger?: Logger;
+}
 
 /**
  * Fetches the page count for the given Q&A
@@ -43,8 +17,9 @@ export const getHtml = async (url: string, options?: FetchOptions): Promise<Html
  * @param logger Optional {@link Logger}
  * @returns The page count for the given Q&A
  */
-export const fetchPageCount = async (url: QnaHomeUrl, options?: FetchOptions): Promise<number | null> => {
-    const html = await getHtml(url, options);
+export const fetchPageCount = async (url: QnaHomeUrl, options?: FetcherOptions): Promise<number | null> => {
+    const client = options?.client ?? getGotClient();
+    const html = await client.getHtml(url);
     if (html === null) {
         return null;
     }
@@ -70,10 +45,10 @@ export const fetchPageCount = async (url: QnaHomeUrl, options?: FetchOptions): P
  * @param logger Optional {@link Logger}
  * @returns true if the Q&A exists, false if it does not
  */
-export const pingQna = async (program: string, season: string, options?: FetchOptions): Promise<boolean> => {
+export const pingQna = async (program: string, season: string, options?: FetcherOptions): Promise<boolean> => {
     const url = buildHomeQnaUrl({ program, season });
-    const client = getScrapingClient();
-    const ok = client.ping(url, options);
+    const client = options?.client ?? getGotClient();
+    const ok = client.ping(url);
     options?.logger?.trace({
         exists: ok,
         label: "pingQna",
@@ -89,8 +64,9 @@ export const pingQna = async (program: string, season: string, options?: FetchOp
  * @param logger Optional {@link Logger}
  * @returns The Q&A data from the page
  */
-export const fetchQuestion = async (url: QnaIdUrl, options?: FetchOptions): Promise<Question | null> => {
-    const html = await getHtml(url, options);
+export const fetchQuestion = async (url: QnaIdUrl, options?: FetcherOptions): Promise<Question | null> => {
+    const client = options?.client ?? getGotClient();
+    const html = await client.getHtml(url);
     if (html === null) {
         return null;
     }
@@ -102,7 +78,7 @@ export const fetchQuestion = async (url: QnaIdUrl, options?: FetchOptions): Prom
  * @param logger Optional {@link Logger}
  * @returns The current season
  */
-export const fetchCurrentSeason = async (options?: FetchOptions): Promise<Season> => {
+export const fetchCurrentSeason = async (options?: FetchClientOptions): Promise<Season> => {
     const newSeason = await pingQna("V5RC", `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`, options);
     const currentSeason: Season = newSeason ? `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}` : `${Constants.CURRENT_YEAR - 1}-${Constants.CURRENT_YEAR}`;
     options?.logger?.trace(
@@ -138,7 +114,7 @@ export const fetchAllSeasons = async (logger?: Logger): Promise<Season[]> => {
  * @param logger Optional {@link Logger}
  * @returns A list of urls corresponding to the given program and seasons
  */
-export const fetchPagesForSeasons = async (program: string, seasons: Season[], options?: FetchOptions): Promise<QnaPageUrl[]> => {
+export const fetchPagesForSeasons = async (program: string, seasons: Season[], options?: FetchClientOptions): Promise<QnaPageUrl[]> => {
     const urls: QnaPageUrl[] = [];
     for (const season of seasons) {
         const url = buildHomeQnaUrl({ program, season });
@@ -162,8 +138,9 @@ export type PageQuestionsResults = [Question[], string[]];
  * @param logger Optional {@link Logger}
  * @returns Q&A data from the given page
  */
-export const fetchQuestionsFromPage = async (url: QnaPageUrl, options?: FetchOptions): Promise<PageQuestionsResults | null> => {
-    const html = await getHtml(url);
+export const fetchQuestionsFromPage = async (url: QnaPageUrl, options?: FetchClientOptions): Promise<PageQuestionsResults | null> => {
+    const client = getGotClient();
+    const html = await client.getHtml(url);
     if (html === null) {
         return null;
     }
@@ -194,7 +171,7 @@ type Job<T> = {
  * @param interval Time in milliseconds to wait in between requests
  * @returns All Q&A data from the specified pages
  */
-export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: FetchOptions, interval = 1500): Promise<Question[]> => {
+export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: FetchClientOptions, interval = 1500): Promise<Question[]> => {
     const jobs: Job<Promise<AttemptResult<PageQuestionsResults | null>>>[] = [];
     const startTime = process.hrtime.bigint();
 
@@ -237,9 +214,10 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: Fetc
     return success;
 };
 
-export const fetchQuestionRange = (ids: number[], options?: FetchOptions): Promise<Question | null>[] => {
+export const fetchQuestionRange = (ids: number[]): Promise<Question | null>[] => {
     return ids.map(async (id) => {
-        const page = await getHtml(`https://www.robotevents.com/V5RC/2020-2021/QA/${id}`, options);
+        const client = getGotClient();
+        const page = await client.getHtml(`https://www.robotevents.com/V5RC/2020-2021/QA/${id}`);
         if (page === null) {
             return null;
         }
@@ -266,7 +244,7 @@ export type IterativeFetchResult = {
     failures: string[];
 };
 
-export type IterativeFetchOptions = FetchOptions & {
+export type IterativeFetchOptions = FetchClientOptions & {
     /**
      * The ID to start scraping questions from
      */
@@ -310,7 +288,7 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
 
     while (!batchFailed) {
         options?.logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
-        const results = await Promise.allSettled(fetchQuestionRange(range, options));
+        const results = await Promise.allSettled(fetchQuestionRange(range));
         const { questions: batchQuestions, failed, failures: batchFailures } = handleIterativeBatch(range, results);
         questions.push(...batchQuestions);
         if (failed) {
@@ -331,8 +309,9 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
     return { questions, failures };
 };
 
-export const checkIfReadOnly = async (program: string, season: Season, options?: FetchOptions): Promise<boolean | null> => {
-    const html = await getHtml(`https://www.robotevents.com/${program}/${season}/QA/`, options);
+export const checkIfReadOnly = async (program: string, season: Season): Promise<boolean | null> => {
+    const client = getGotClient();
+    const html = await client.getHtml(`https://www.robotevents.com/${program}/${season}/QA/`);
     if (html === null) {
         return null;
     }
