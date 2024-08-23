@@ -4,10 +4,10 @@ import { Question, Season } from "../types";
 import { extractPageCount, extractQuestion, extractPageQuestions, extractReadOnly } from "./extractors";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
 import { sleep, nsToMsElapsed, attempt, AttemptResult } from "../util";
-import { FetchClient, FetchClientOptions, getGotClient } from "../clients";
+import { FetchClient, FetchClientOptions, FetchClientResponse, getGotClient } from "../clients";
 
-export interface FetcherOptions {
-    client?: FetchClient;
+export interface FetcherOptions<T extends FetchClientResponse = FetchClientResponse> {
+    client?: FetchClient<T>;
     logger?: Logger;
 }
 

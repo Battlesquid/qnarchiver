@@ -7,7 +7,7 @@ import { unleak } from "../modules/extractors";
 import { Logger } from "pino";
 
 export type BaseGotClientFetchResponse = {
-    response: Response<string>;
+    readonly response: Response<string>;
 };
 
 type InternalGotClientFetchResponse = BaseGotClientFetchResponse & {
@@ -29,7 +29,7 @@ let gotScraping = (async (...args: Parameters<GotScraping>) => {
     return gotScraping(...args);
 }) as GotScraping;
 
-class GotScrapingClient implements FetchClient {
+class GotScrapingClient implements FetchClient<GotClientFetchResponse> {
     private sessionPool: SessionPool | null = null;
 
     constructor(
@@ -107,8 +107,7 @@ class GotScrapingClient implements FetchClient {
 
     async getHtml(url: string): Promise<FetchHtmlResponse | null> {
         this.logger?.trace(`Fetching HTML from ${url}.`);
-        const client = getGotClient();
-        const { response, status, ok } = await client.fetch(url);
+        const { response, status, ok } = await this.fetch(url);
         if (!ok) {
             this.logger?.trace(
                 {

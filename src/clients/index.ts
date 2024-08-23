@@ -7,19 +7,19 @@ export interface FetchClientOptions {
     logger?: Logger;
 }
 
-export interface FetchClientResponse {
+export type FetchClientResponse = {
     ok: boolean;
     status: number;
     body: string;
-}
+};
 
 export type FetchHtmlResponse = {
     html: string;
     url: string;
 };
 
-export interface FetchClient {
-    fetch<T extends FetchClientResponse = FetchClientResponse>(url: string): Promise<T>;
+export interface FetchClient<FetchResponse extends FetchClientResponse> {
+    fetch(url: string): Promise<FetchResponse>;
     ping(url: string): Promise<boolean>;
 
     /**
