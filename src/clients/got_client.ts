@@ -2,8 +2,7 @@
 // @ts-ignore Okay because we only import a type.
 import type { GotScraping, Response } from "got-scraping";
 import { SessionPool } from "@crawlee/core";
-import { FetchClient, FetchClientOptions, FetchClientResponse, FetchHtmlResponse } from ".";
-import { unleak } from "../modules/extractors";
+import { FetchClient, FetchClientOptions, FetchClientResponse } from ".";
 import { Logger } from "pino";
 
 export type BaseGotClientFetchResponse = {
@@ -29,13 +28,15 @@ let gotScraping = (async (...args: Parameters<GotScraping>) => {
     return gotScraping(...args);
 }) as GotScraping;
 
-class GotScrapingClient implements FetchClient<GotClientFetchResponse> {
+export class GotClient extends FetchClient<GotClientFetchResponse> {
     private sessionPool: SessionPool | null = null;
 
     constructor(
-        private logger?: Logger,
+        logger?: Logger,
         private doSessionRefresh?: boolean
-    ) {}
+    ) {
+        super(logger);
+    }
 
     private async getSessionPool(): Promise<SessionPool> {
         this.sessionPool ??= await SessionPool.open({
@@ -92,48 +93,16 @@ class GotScrapingClient implements FetchClient<GotClientFetchResponse> {
         const response = await getResponse();
         const {
             badSession,
-            response: { body, statusCode: status, ok }
+            response: { body, statusCode: status, url: responseURL, ok }
         } = response;
         if (badSession && this.doSessionRefresh) {
             logger?.info("Retrying request with new session.");
             const retryResponse = await getResponse();
             const {
-                response: { body, statusCode: status, ok }
+                response: { body, statusCode: status, url, ok }
             } = retryResponse;
-            return { body, status, ok, response: retryResponse.response };
+            return { body, status, ok, response: retryResponse.response, url };
         }
-        return { body, status, ok, response: response.response };
-    }
-
-    async getHtml(url: string): Promise<FetchHtmlResponse | null> {
-        this.logger?.trace(`Fetching HTML from ${url}.`);
-        const { response, status, ok } = await this.fetch(url);
-        if (!ok) {
-            this.logger?.trace(
-                {
-                    url,
-                    status,
-                    headers: response.request.options.headers
-                },
-                `Fetch for ${url} returned ${status}: ${status}`
-            );
-            return null;
-        }
-        return {
-            url: response.url,
-            html: unleak(response.body)
-        };
-    }
-
-    async ping(url: string): Promise<boolean> {
-        const response = await this.fetch(url);
-        return response.ok;
+        return { body, status, ok, response: response.response, url: responseURL };
     }
 }
-
-let client: GotScrapingClient | null = null;
-
-export const getGotClient = (): GotScrapingClient => {
-    client ??= new GotScrapingClient();
-    return client;
-};

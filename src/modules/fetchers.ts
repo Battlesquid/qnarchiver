@@ -1,10 +1,10 @@
-import { Constants } from "./constants";
 import { Logger } from "pino";
+import { FetchClient, FetchClientOptions, FetchClientResponse, getPreferredClient } from "../clients";
 import { Question, Season } from "../types";
-import { extractPageCount, extractQuestion, extractPageQuestions, extractReadOnly } from "./extractors";
-import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, buildHomeQnaUrl, buildQnaUrlWithPage } from "./parsing";
-import { sleep, nsToMsElapsed, attempt, AttemptResult } from "../util";
-import { FetchClient, FetchClientOptions, FetchClientResponse, getGotClient } from "../clients";
+import { attempt, AttemptResult, nsToMsElapsed, sleep } from "../util";
+import { Constants } from "./constants";
+import { extractPageCount, extractPageQuestions, extractQuestion, extractReadOnly } from "./extractors";
+import { buildHomeQnaUrl, buildQnaUrlWithId, buildQnaUrlWithPage, QnaHomeUrl, QnaIdUrl, QnaPageUrl } from "./parsing";
 
 export interface FetcherOptions<T extends FetchClientResponse = FetchClientResponse> {
     client?: FetchClient<T>;
@@ -18,7 +18,7 @@ export interface FetcherOptions<T extends FetchClientResponse = FetchClientRespo
  * @returns The page count for the given Q&A
  */
 export const fetchPageCount = async (url: QnaHomeUrl, options?: FetcherOptions): Promise<number | null> => {
-    const client = options?.client ?? getGotClient();
+    const client = options?.client ?? getPreferredClient(options?.logger);
     const html = await client.getHtml(url);
     if (html === null) {
         return null;
@@ -47,7 +47,7 @@ export const fetchPageCount = async (url: QnaHomeUrl, options?: FetcherOptions):
  */
 export const pingQna = async (program: string, season: string, options?: FetcherOptions): Promise<boolean> => {
     const url = buildHomeQnaUrl({ program, season });
-    const client = options?.client ?? getGotClient();
+    const client = options?.client ?? getPreferredClient(options?.logger);
     const ok = client.ping(url);
     options?.logger?.trace({
         exists: ok,
@@ -65,7 +65,7 @@ export const pingQna = async (program: string, season: string, options?: Fetcher
  * @returns The Q&A data from the page
  */
 export const fetchQuestion = async (url: QnaIdUrl, options?: FetcherOptions): Promise<Question | null> => {
-    const client = options?.client ?? getGotClient();
+    const client = options?.client ?? getPreferredClient(options?.logger);
     const html = await client.getHtml(url);
     if (html === null) {
         return null;
@@ -78,7 +78,7 @@ export const fetchQuestion = async (url: QnaIdUrl, options?: FetcherOptions): Pr
  * @param logger Optional {@link Logger}
  * @returns The current season
  */
-export const fetchCurrentSeason = async (options?: FetchClientOptions): Promise<Season> => {
+export const fetchCurrentSeason = async (options?: FetcherOptions): Promise<Season> => {
     const newSeason = await pingQna("V5RC", `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`, options);
     const currentSeason: Season = newSeason ? `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}` : `${Constants.CURRENT_YEAR - 1}-${Constants.CURRENT_YEAR}`;
     options?.logger?.trace(
@@ -96,14 +96,14 @@ export const fetchCurrentSeason = async (options?: FetchClientOptions): Promise<
  * @param logger Optional {@link Logger}
  * @returns A list of all seasons to date
  */
-export const fetchAllSeasons = async (logger?: Logger): Promise<Season[]> => {
+export const fetchAllSeasons = async (options?: FetcherOptions): Promise<Season[]> => {
     const allSeasons: Season[] = [];
-    const [start] = (await fetchCurrentSeason()).split("-");
+    const [start] = (await fetchCurrentSeason(options)).split("-");
     const startYear = parseInt(start);
     for (let year = 2018; year <= startYear; year++) {
         allSeasons.push(`${year}-${year + 1}`);
     }
-    logger?.trace({ allSeasons }, "Fetched all seasons");
+    options?.logger?.trace({ allSeasons }, "Fetched all seasons");
     return allSeasons;
 };
 
@@ -138,8 +138,8 @@ export type PageQuestionsResults = [Question[], string[]];
  * @param logger Optional {@link Logger}
  * @returns Q&A data from the given page
  */
-export const fetchQuestionsFromPage = async (url: QnaPageUrl, options?: FetchClientOptions): Promise<PageQuestionsResults | null> => {
-    const client = getGotClient();
+export const fetchQuestionsFromPage = async (url: QnaPageUrl, options?: FetcherOptions): Promise<PageQuestionsResults | null> => {
+    const client = options?.client ?? getPreferredClient(options?.logger);
     const html = await client.getHtml(url);
     if (html === null) {
         return null;
@@ -171,7 +171,7 @@ type Job<T> = {
  * @param interval Time in milliseconds to wait in between requests
  * @returns All Q&A data from the specified pages
  */
-export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: FetchClientOptions, interval = 1500): Promise<Question[]> => {
+export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: FetcherOptions, interval = 1500): Promise<Question[]> => {
     const jobs: Job<Promise<AttemptResult<PageQuestionsResults | null>>>[] = [];
     const startTime = process.hrtime.bigint();
 
@@ -214,10 +214,15 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: Fetc
     return success;
 };
 
-export const fetchQuestionRange = (ids: number[]): Promise<Question | null>[] => {
+export const fetchQuestionRange = (ids: number[], options?: FetcherOptions): Promise<Question | null>[] => {
     return ids.map(async (id) => {
-        const client = getGotClient();
-        const page = await client.getHtml(`https://www.robotevents.com/V5RC/2020-2021/QA/${id}`);
+        const client = options?.client ?? getPreferredClient(options?.logger);
+        const url = buildQnaUrlWithId({
+            program: "V5RC",
+            season: "2020-2021",
+            id: `${id}`
+        });
+        const page = await client.getHtml(url);
         if (page === null) {
             return null;
         }
@@ -244,7 +249,7 @@ export type IterativeFetchResult = {
     failures: string[];
 };
 
-export type IterativeFetchOptions = FetchClientOptions & {
+export type IterativeFetchOptions = FetcherOptions & {
     /**
      * The ID to start scraping questions from
      */
@@ -288,7 +293,7 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
 
     while (!batchFailed) {
         options?.logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
-        const results = await Promise.allSettled(fetchQuestionRange(range));
+        const results = await Promise.allSettled(fetchQuestionRange(range, options));
         const { questions: batchQuestions, failed, failures: batchFailures } = handleIterativeBatch(range, results);
         questions.push(...batchQuestions);
         if (failed) {
@@ -309,9 +314,9 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
     return { questions, failures };
 };
 
-export const checkIfReadOnly = async (program: string, season: Season): Promise<boolean | null> => {
-    const client = getGotClient();
-    const html = await client.getHtml(`https://www.robotevents.com/${program}/${season}/QA/`);
+export const checkIfReadOnly = async (program: string, season: Season, options?: FetcherOptions): Promise<boolean | null> => {
+    const client = options?.client ?? getPreferredClient(options?.logger);
+    const html = await client.getHtml(buildHomeQnaUrl({ program, season }));
     if (html === null) {
         return null;
     }

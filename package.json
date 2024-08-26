@@ -30,6 +30,8 @@
     "dependencies": {
         "@crawlee/core": "^3.7.2",
         "cheerio": "^1.0.0-rc.12",
+        "cycletls": "^1.0.26",
+        "form-data": "^4.0.0",
         "got-scraping": "^4.0.3",
         "pino": "^8.17.2"
     },
