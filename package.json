@@ -33,7 +33,9 @@
         "cycletls": "^1.0.26",
         "form-data": "^4.0.0",
         "got-scraping": "^4.0.3",
-        "pino": "^8.17.2"
+        "header-generator": "^2.1.54",
+        "pino": "^8.17.2",
+        "ts-curl-impersonate": "^1.0.0"
     },
     "publishConfig": {
         "registry": "https://registry.npmjs.org"

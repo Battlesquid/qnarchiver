@@ -28,7 +28,7 @@ let gotScraping = (async (...args: Parameters<GotScraping>) => {
     return gotScraping(...args);
 }) as GotScraping;
 
-export class GotClient extends FetchClient<GotClientFetchResponse> {
+export class GotScrapingClient extends FetchClient<GotClientFetchResponse> {
     private sessionPool: SessionPool | null = null;
 
     constructor(
@@ -105,4 +105,6 @@ export class GotClient extends FetchClient<GotClientFetchResponse> {
         }
         return { body, status, ok, response: response.response, url: responseURL };
     }
+
+    teardown(): Promise<void> | void {}
 }

@@ -2631,6 +2631,14 @@ generative-bayesian-network@^2.1.46:
     adm-zip "^0.5.9"
     tslib "^2.4.0"
 
+generative-bayesian-network@^2.1.54:
+  version "2.1.54"
+  resolved "https://registry.yarnpkg.com/generative-bayesian-network/-/generative-bayesian-network-2.1.54.tgz#5d75183b11bdf1ea6f80aeb57512804506af64df"
+  integrity sha512-1RIfmYqZqghwjRQGqUU36tZmJkyz77dztmgUHeAGkG0o9eTwN7fBxOCyQLqxZd9Qg72d19IKdcIvrs53TI2KdA==
+  dependencies:
+    adm-zip "^0.5.9"
+    tslib "^2.4.0"
+
 gensync@^1.0.0-beta.2:
   version "1.0.0-beta.2"
   resolved "https://registry.yarnpkg.com/gensync/-/gensync-1.0.0-beta.2.tgz#32a6ee76c3d7f52d46b2b1ae5d93fea8580a25e0"
@@ -2902,6 +2910,16 @@ header-generator@^2.1.41:
   dependencies:
     browserslist "^4.21.1"
     generative-bayesian-network "^2.1.46"
+    ow "^0.28.1"
+    tslib "^2.4.0"
+
+header-generator@^2.1.54:
+  version "2.1.54"
+  resolved "https://registry.yarnpkg.com/header-generator/-/header-generator-2.1.54.tgz#211c76157a21bdadc6d49210753a348ffe3f3bb3"
+  integrity sha512-fRitYKX+HwmID0zUeWzsu3wZDa5dTVi7XE/m2kRcP+wZVhVuKHm7zD2jfmxddhVQWgdp0CY4+eTfDOlD5dsBMQ==
+  dependencies:
+    browserslist "^4.21.1"
+    generative-bayesian-network "^2.1.54"
     ow "^0.28.1"
     tslib "^2.4.0"
 
@@ -5436,6 +5454,11 @@ ts-api-utils@^1.0.1:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/ts-api-utils/-/ts-api-utils-1.0.3.tgz#f12c1c781d04427313dbac808f453f050e54a331"
   integrity sha512-wNMeqtMz5NtwpT/UZGY5alT+VoKdSsOOP/kqHFcUW1P/VRhH2wJ48+DN2WwUliNbQ976ETwDL0Ifd2VVvgonvg==
+
+ts-curl-impersonate@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/ts-curl-impersonate/-/ts-curl-impersonate-1.0.0.tgz#384e9d498871ce1e2efa38ee1bc99219d8009716"
+  integrity sha512-bZkD6j/QPyWT3JSpa33m8vfFbADejWeaW45DtBYiMGbwEtRArH1v4JYPpS3r+8NJlZV9u4m5GnXQk2nNHxzn2g==
 
 ts-jest@^29.1.1:
   version "29.1.1"

@@ -1,4 +1,4 @@
-import cheerioModule from "cheerio";
+import * as cheerioModule from "cheerio";
 import { QnaHomeUrl, QnaIdUrl, QnaPageUrl, parseQnaUrlWithId } from "./parsing";
 import SELECTORS from "../selectors.json";
 import { Question } from "../types";

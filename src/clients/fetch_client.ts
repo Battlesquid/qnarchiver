@@ -46,6 +46,7 @@ export abstract class FetchClient<FetchResponse extends FetchClientResponse> {
     constructor(protected logger?: Logger) {}
 
     abstract fetch(url: string): Promise<FetchResponse>;
+    abstract teardown(): Promise<void> | void;
 
     /**
      * Utility method for checking if a page exists
@@ -65,14 +66,14 @@ export abstract class FetchClient<FetchResponse extends FetchClientResponse> {
         this.logger?.trace(`Fetching HTML from ${url}.`);
 
         const response = await this.fetch(url);
+        this.logger?.trace(
+            {
+                url,
+                status: response.status
+            },
+            `Fetch for ${url} returned ${response.status}`
+        );
         if (!response.ok) {
-            this.logger?.trace(
-                {
-                    url,
-                    status: response.status
-                },
-                `Fetch for ${url} returned ${response.status}: ${response.status}`
-            );
             return null;
         }
         return {

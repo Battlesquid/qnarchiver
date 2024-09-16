@@ -1,5 +1,5 @@
 import { Logger } from "pino";
-import { FetchClient, FetchClientOptions, FetchClientResponse, getPreferredClient } from "../clients";
+import { FetchClient, FetchClientOptions, FetchClientResponse, getDefaultFetcherOptions } from "../clients";
 import { Question, Season } from "../types";
 import { attempt, AttemptResult, nsToMsElapsed, sleep } from "../util";
 import { Constants } from "./constants";
@@ -9,6 +9,7 @@ import { buildHomeQnaUrl, buildQnaUrlWithId, buildQnaUrlWithPage, QnaHomeUrl, Qn
 export interface FetcherOptions<T extends FetchClientResponse = FetchClientResponse> {
     client?: FetchClient<T>;
     logger?: Logger;
+    teardown?: boolean;
 }
 
 /**
@@ -18,7 +19,7 @@ export interface FetcherOptions<T extends FetchClientResponse = FetchClientRespo
  * @returns The page count for the given Q&A
  */
 export const fetchPageCount = async (url: QnaHomeUrl, options?: FetcherOptions): Promise<number | null> => {
-    const client = options?.client ?? getPreferredClient(options?.logger);
+    const { client, teardown } = await getDefaultFetcherOptions(options);
     const html = await client.getHtml(url);
     if (html === null) {
         return null;
@@ -35,6 +36,9 @@ export const fetchPageCount = async (url: QnaHomeUrl, options?: FetcherOptions):
         },
         `Page count for ${url}: ${pageCount}`
     );
+    if (teardown) {
+        await client.teardown();
+    }
     return pageCount;
 };
 
@@ -46,8 +50,8 @@ export const fetchPageCount = async (url: QnaHomeUrl, options?: FetcherOptions):
  * @returns true if the Q&A exists, false if it does not
  */
 export const pingQna = async (program: string, season: string, options?: FetcherOptions): Promise<boolean> => {
+    const { client, teardown } = await getDefaultFetcherOptions(options);
     const url = buildHomeQnaUrl({ program, season });
-    const client = options?.client ?? getPreferredClient(options?.logger);
     const ok = client.ping(url);
     options?.logger?.trace({
         exists: ok,
@@ -55,6 +59,9 @@ export const pingQna = async (program: string, season: string, options?: Fetcher
         program,
         season
     });
+    if (teardown) {
+        await client.teardown();
+    }
     return ok;
 };
 
@@ -65,10 +72,20 @@ export const pingQna = async (program: string, season: string, options?: Fetcher
  * @returns The Q&A data from the page
  */
 export const fetchQuestion = async (url: QnaIdUrl, options?: FetcherOptions): Promise<Question | null> => {
-    const client = options?.client ?? getPreferredClient(options?.logger);
+    const { client, teardown } = await getDefaultFetcherOptions(options);
     const html = await client.getHtml(url);
     if (html === null) {
+        if (teardown) {
+            console.log("tearing down");
+            await client.teardown();
+            console.log("done tearing down");
+        }
         return null;
+    }
+    if (teardown) {
+        console.log("tearing down");
+        await client.teardown();
+        console.log("done tearing down");
     }
     return extractQuestion({ url, html: html.html });
 };
@@ -139,7 +156,7 @@ export type PageQuestionsResults = [Question[], string[]];
  * @returns Q&A data from the given page
  */
 export const fetchQuestionsFromPage = async (url: QnaPageUrl, options?: FetcherOptions): Promise<PageQuestionsResults | null> => {
-    const client = options?.client ?? getPreferredClient(options?.logger);
+    const { client, teardown } = await getDefaultFetcherOptions(options);
     const html = await client.getHtml(url);
     if (html === null) {
         return null;
@@ -156,6 +173,9 @@ export const fetchQuestionsFromPage = async (url: QnaPageUrl, options?: FetcherO
             failed.push(urls[i]);
         }
     });
+    if (teardown) {
+        await client.teardown();
+    }
     return [passed, failed];
 };
 
@@ -172,6 +192,7 @@ type Job<T> = {
  * @returns All Q&A data from the specified pages
  */
 export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: FetcherOptions, interval = 1500): Promise<Question[]> => {
+    const { client, teardown } = await getDefaultFetcherOptions(options);
     const jobs: Job<Promise<AttemptResult<PageQuestionsResults | null>>>[] = [];
     const startTime = process.hrtime.bigint();
 
@@ -180,7 +201,7 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: Fetc
             name: url,
             job: attempt({
                 attempts: 3,
-                callback: () => fetchQuestionsFromPage(url, options),
+                callback: () => fetchQuestionsFromPage(url, { client, teardown: false }),
                 logger: options?.logger
             })
         };
@@ -211,12 +232,15 @@ export const fetchQuestionsFromPages = async (urls: QnaPageUrl[], options?: Fetc
         `${success.length} succeeded, ${failedQuestions.length} questions failed, ${failedPages.length} question pages failed.`
     );
     options?.logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
+    if (teardown) {
+        await client.teardown();
+    }
     return success;
 };
 
-export const fetchQuestionRange = (ids: number[], options?: FetcherOptions): Promise<Question | null>[] => {
-    return ids.map(async (id) => {
-        const client = options?.client ?? getPreferredClient(options?.logger);
+export const fetchQuestionRange = async (ids: number[], options?: FetcherOptions): Promise<IterativeBatchResult> => {
+    const { client, teardown } = await getDefaultFetcherOptions(options);
+    const range = ids.map(async (id) => {
         const url = buildQnaUrlWithId({
             program: "V5RC",
             season: "2020-2021",
@@ -232,6 +256,11 @@ export const fetchQuestionRange = (ids: number[], options?: FetcherOptions): Pro
             url: page.url as QnaIdUrl
         });
     });
+    const results = await Promise.allSettled(range);
+    if (teardown) {
+        await client.teardown();
+    }
+    return handleIterativeBatch(ids, results);
 };
 
 export const ITERATIVE_BATCH_COUNT = 10;
@@ -283,6 +312,7 @@ export const handleIterativeBatch = (range: number[], results: PromiseSettledRes
  * @returns Object containing the fecthed Q&As, plus some additional utility data
  */
 export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): Promise<IterativeFetchResult> => {
+    const { client, teardown } = await getDefaultFetcherOptions(options);
     const start = options?.start !== undefined ? Math.max(options.start, 1) : 1;
     let batchFailed = false;
     let range = [...Array(ITERATIVE_BATCH_COUNT).keys()].map((n) => start + n);
@@ -293,8 +323,7 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
 
     while (!batchFailed) {
         options?.logger?.trace(`Scraping question range ${range[0]}-${range.at(-1)}`);
-        const results = await Promise.allSettled(fetchQuestionRange(range, options));
-        const { questions: batchQuestions, failed, failures: batchFailures } = handleIterativeBatch(range, results);
+        const { questions: batchQuestions, failed, failures: batchFailures } = await fetchQuestionRange(range, { client, teardown: false });
         questions.push(...batchQuestions);
         if (failed) {
             options?.logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
@@ -311,14 +340,20 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
     options?.logger?.info(`Failed getting ${failures.length} questions`);
     options?.logger?.info(`Completed in ${elapsed.getMinutes()}min ${elapsed.getSeconds()}s ${elapsed.getMilliseconds()}ms`);
 
+    if (teardown) {
+        await client.teardown();
+    }
     return { questions, failures };
 };
 
 export const checkIfReadOnly = async (program: string, season: Season, options?: FetcherOptions): Promise<boolean | null> => {
-    const client = options?.client ?? getPreferredClient(options?.logger);
+    const { client, teardown } = await getDefaultFetcherOptions(options);
     const html = await client.getHtml(buildHomeQnaUrl({ program, season }));
     if (html === null) {
         return null;
+    }
+    if (teardown) {
+        await client.teardown();
     }
     return extractReadOnly({ url: html.url as QnaHomeUrl, html: html.html });
 };
