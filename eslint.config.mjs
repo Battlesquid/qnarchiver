@@ -7,5 +7,6 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
         curly: "error",
         quotes: ["error", "double", { allowTemplateLiterals: true }],
         "@typescript-eslint/explicit-function-return-type": "error"
-    }
+    },
+    ignores: ["node_modules", "dist"]
 });
