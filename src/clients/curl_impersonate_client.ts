@@ -21,6 +21,8 @@ export class CurlImpersonateScrapingClient extends FetchClient<FetchClientRespon
                 };
                 if (!badStatusCodes.includes(details.response_code)) {
                     return latestResponse;
+                } else {
+                    this.logger?.trace(`Request did not return an accepted response code (preset: ${browser.name} v${version})`);
                 }
             }
         }
@@ -33,7 +35,7 @@ export class CurlImpersonateScrapingClient extends FetchClient<FetchClientRespon
     private async doPresetRequest<T extends BrowserType>(url: string, preset: RequestPreset<T>): Promise<CurlResultOk> {
         const response = await new RequestBuilder().url(url).preset(preset).follow().send();
         if (response.stderr !== undefined) {
-            throw new Error(""); // TODO figure out how to handle this
+            throw new Error(response.stderr); // TODO figure out how to handle this
         }
         return response;
     }
