@@ -3,6 +3,7 @@
         "target": "es2020",
         "module": "Node16",
         "declaration": true,
+        "baseUrl": "./src",
         "outDir": "dist",
         "strict": true,
         "noImplicitAny": true,
@@ -16,5 +17,6 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true
-    }
+    },
+    "include": ["src/**/*.ts"]
 }

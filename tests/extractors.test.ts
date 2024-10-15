@@ -3,7 +3,7 @@ import judging_home_page from "./data/judging_home_page";
 import vurc_home_page from "./data/vurc_home_page";
 import v5rc_home_page from "./data/v5rc_home_page";
 import v5rc_question_page from "./data/v5rc_question_page";
-import v5rc_question_page_json from "./data/v5rc_question_page_json.json";
+import v5rc_question_page_json from "./data/v5rc_question_page_json";
 
 describe("extractPageCount", () => {
     it("shall return the correct page number when the pagination element is present", () => {
