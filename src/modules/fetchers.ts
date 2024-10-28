@@ -97,7 +97,9 @@ export const fetchQuestion = async (url: QnaIdUrl, options?: FetcherOptions): Pr
  */
 export const fetchCurrentSeason = async (options?: FetcherOptions): Promise<Season> => {
     const newSeason = await pingQna("V5RC", `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`, options);
-    const currentSeason: Season = newSeason ? `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}` : `${Constants.CURRENT_YEAR - 1}-${Constants.CURRENT_YEAR}`;
+    const currentSeason: Season = newSeason
+        ? `${Constants.CURRENT_YEAR}-${Constants.CURRENT_YEAR + 1}`
+        : `${Constants.CURRENT_YEAR - 1}-${Constants.CURRENT_YEAR}`;
     options?.logger?.trace(
         {
             label: "fetchCurrentSeason",

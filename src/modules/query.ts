@@ -1,5 +1,12 @@
 import { Question, Season } from "../types";
-import { fetchCurrentSeason, FetcherOptions, fetchQuestionsFromPages, fetchQuestionsIterative, IterativeFetchOptions, IterativeFetchResult } from "./fetchers";
+import {
+    fetchCurrentSeason,
+    FetcherOptions,
+    fetchQuestionsFromPages,
+    fetchQuestionsIterative,
+    IterativeFetchOptions,
+    IterativeFetchResult
+} from "./fetchers";
 import { QnaFilters, getScrapingUrls } from "./generators";
 
 /**
