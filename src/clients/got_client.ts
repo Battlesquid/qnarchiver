@@ -2,7 +2,7 @@
 // @ts-ignore Okay because we only import a type.
 import type { GotScraping, Response } from "got-scraping";
 import { SessionPool } from "@crawlee/core";
-import { FetchClient, FetchClientOptions, FetchClientResponse } from ".";
+import { FetchClient, FetchClientOptions, FetchClientResponse } from "./fetch_client";
 import { Logger } from "pino";
 
 export type BaseGotClientFetchResponse = {

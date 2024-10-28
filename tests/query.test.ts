@@ -1,4 +1,4 @@
-import { getOldestUnansweredQuestion } from "../src";
+import { getOldestUnansweredQuestion } from "../src/index";
 import {
     OLDEST_TEST_QUESTION_UNIQUE_DATES,
     OLDEST_TEST_QUESTIONS_MIXED_OVERLAPPING_DATES,

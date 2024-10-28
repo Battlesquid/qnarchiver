@@ -1,4 +1,4 @@
-# vex-qna-archiver
+# scraper
 
 A set of utilities focused on scraping the [VEX Robotics Q&A](https://www.robotevents.com/V5RC/2024-2025/QA/).
 
@@ -7,7 +7,7 @@ A set of utilities focused on scraping the [VEX Robotics Q&A](https://www.robote
 ### Retreiving All Questions
 
 ```ts
-import { getAllQuestions } from "vex-qna-archiver";
+import { getAllQuestions } from "@qnaplus/scraper";
 
 (async () => {
     const questions = await getAllQuestions();
@@ -17,7 +17,7 @@ import { getAllQuestions } from "vex-qna-archiver";
 ### Retreiving and Filtering Questions
 
 ```ts
-import { getQuestions } from "vex-qna-archiver";
+import { getQuestions } from "@qnaplus/scraper";
 
 (async () => {
     // gets all questions from the current season
@@ -36,7 +36,7 @@ import { getQuestions } from "vex-qna-archiver";
 ### Retrieving Unanswered Questions
 
 ```ts
-import { getUnansweredQuestions } from "vex-qna-archiver";
+import { getUnansweredQuestions } from "@qnaplus/scraper";
 
 (async () => {
     const questions = await getUnansweredQuestions();

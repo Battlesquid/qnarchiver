@@ -1,17 +1,44 @@
-node_modules
-/dist
-qna.db
+*.tsbuildinfo
 
-#intellij
-.idea/
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+*.swp
+
+pids
+logs
+results
+tmp
+
+# Build
+public/css/main.css
+
+# Coverage reports
+coverage
+
+# Dependency directory
+node_modules
+bower_components
+
+# Editors
+.idea
 *.iml
 
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
+# OS metadata
+.DS_Store
+Thumbs.db
 
-coverage
+# Ignore built ts files
+dist
+
+# API keys and secrets
+/.env*
+.flaskenv*
+!.env.project
+!.env.vault
+!.env.template
