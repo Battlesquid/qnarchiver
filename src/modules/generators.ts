@@ -3,7 +3,6 @@ import { Program, Season } from "../types";
 import { Constants } from "./constants";
 import { fetchPagesForSeasons, pingQna } from "./fetchers";
 import { QnaPageUrl } from "./parsing";
-import { FetchOptions } from "../util";
 
 const unique = <T>(arr: T[]): T[] => arr.filter((a, i) => arr.indexOf(a) === i);
 
@@ -12,6 +11,10 @@ export type ProgramFilters = {
     [k in Program]?: Season[];
 };
 export type QnaFilters = ProgramFilters | YearFilters;
+
+export interface GeneratorOptions {
+    logger?: Logger;
+}
 
 /**
  * Verifies that a Q&A exists, actually validating that the program and season is valid before calling {@link pingQna}
@@ -81,10 +84,9 @@ const processFilters = async (filters?: QnaFilters, logger?: Pick<Logger, "trace
 /**
  * Generate a list of urls to scrape based on the given filters
  * @param filters The filters to apply
- * @param logger Optional {@link Logger}
  * @returns A list of urls to scrape that match the given filters
  */
-export const getScrapingUrls = async (filters?: QnaFilters, options?: FetchOptions): Promise<QnaPageUrl[]> => {
+export const getScrapingUrls = async (filters?: QnaFilters, options?: GeneratorOptions): Promise<QnaPageUrl[]> => {
     const [programs, seasons] = await processFilters(filters, options?.logger);
     const urls: QnaPageUrl[] = [];
     for (let ci = 0; ci < programs.length; ci++) {

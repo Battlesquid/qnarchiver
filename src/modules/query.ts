@@ -1,14 +1,20 @@
 import { Question, Season } from "../types";
-import { fetchCurrentSeason, fetchQuestionsFromPages, fetchQuestionsIterative, IterativeFetchOptions, IterativeFetchResult } from "./fetchers";
+import {
+    fetchCurrentSeason,
+    FetcherOptions,
+    fetchQuestionsFromPages,
+    fetchQuestionsIterative,
+    IterativeFetchOptions,
+    IterativeFetchResult
+} from "./fetchers";
 import { QnaFilters, getScrapingUrls } from "./generators";
-import { FetchOptions } from "../util";
 
 /**
  * Utility wrapper around {@link getQuestions} that gets unanswered questions for the current season.
  * @param logger Optional {@link Logger}
  * @returns All questions that have not been answered.
  */
-export const getUnansweredQuestions = async (options?: FetchOptions): Promise<Question[]> => {
+export const getUnansweredQuestions = async (options?: FetcherOptions): Promise<Question[]> => {
     const questions = await getQuestions(undefined, options);
     return questions.filter((q) => !q.answered);
 };
@@ -19,7 +25,7 @@ export const getUnansweredQuestions = async (options?: FetchOptions): Promise<Qu
  * @param logger Optional {@link Logger}
  * @returns All questions that passed the filter.
  */
-export const getQuestions = async (filters?: QnaFilters, options?: FetchOptions): Promise<Question[]> => {
+export const getQuestions = async (filters?: QnaFilters, options?: FetcherOptions): Promise<Question[]> => {
     if (filters === undefined) {
         filters = [await fetchCurrentSeason(options)];
     }

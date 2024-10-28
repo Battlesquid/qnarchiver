@@ -2,24 +2,25 @@
 // @ts-ignore Okay because we only import a type.
 import type { GotScraping, Response } from "got-scraping";
 import { SessionPool } from "@crawlee/core";
+import { FetchClient, FetchClientOptions, FetchClientResponse } from "./fetch_client";
 import { Logger } from "pino";
 
-export interface FetchOptions {
-    /**
-     * Optional logger to include
-     */
-    logger?: Logger;
+export type BaseGotClientFetchResponse = {
+    readonly response: Response<string>;
+};
 
+type InternalGotClientFetchResponse = BaseGotClientFetchResponse & {
+    badSession: boolean;
+};
+
+export type GotClientFetchOptions = FetchClientOptions & {
     /**
      * If a session fails, retry once with a new session before giving up.
      */
     trySessionRefresh?: boolean;
-}
-
-type GotClientFetchResult = {
-    response: Response<string>;
-    badSession: boolean;
 };
+
+export type GotClientFetchResponse = BaseGotClientFetchResponse & FetchClientResponse;
 
 // from @crawlee/util
 let gotScraping = (async (...args: Parameters<GotScraping>) => {
@@ -27,8 +28,15 @@ let gotScraping = (async (...args: Parameters<GotScraping>) => {
     return gotScraping(...args);
 }) as GotScraping;
 
-class GotScrapingClient {
+export class GotScrapingClient extends FetchClient<GotClientFetchResponse> {
     private sessionPool: SessionPool | null = null;
+
+    constructor(
+        logger?: Logger,
+        private doSessionRefresh?: boolean
+    ) {
+        super(logger);
+    }
 
     private async getSessionPool(): Promise<SessionPool> {
         this.sessionPool ??= await SessionPool.open({
@@ -40,11 +48,11 @@ class GotScrapingClient {
         return this.sessionPool;
     }
 
-    async fetch(url: string, options?: FetchOptions): Promise<Response<string>> {
-        const logger = options?.logger?.child({ label: "gotScrapingClientFetch" });
+    async fetch(url: string): Promise<GotClientFetchResponse> {
+        const logger = this.logger?.child({ label: "gotScrapingClientFetch" });
         const pool = await this.getSessionPool();
 
-        const getResponse = async (): Promise<GotClientFetchResult> => {
+        const getResponse = async (): Promise<InternalGotClientFetchResponse> => {
             const session = await pool.getSession();
             let response: Response<string>;
             try {
@@ -82,25 +90,21 @@ class GotScrapingClient {
             }
         };
 
-        const result = await getResponse();
-        if (result.badSession && options?.trySessionRefresh) {
+        const response = await getResponse();
+        const {
+            badSession,
+            response: { body, statusCode: status, url: responseURL, ok }
+        } = response;
+        if (badSession && this.doSessionRefresh) {
             logger?.info("Retrying request with new session.");
-            const retryResult = await getResponse();
-            return retryResult.response;
+            const retryResponse = await getResponse();
+            const {
+                response: { body, statusCode: status, url, ok }
+            } = retryResponse;
+            return { body, status, ok, response: retryResponse.response, url };
         }
-
-        return result.response;
+        return { body, status, ok, response: response.response, url: responseURL };
     }
 
-    async ping(url: string, options?: FetchOptions): Promise<boolean> {
-        const response = await this.fetch(url, options);
-        return response.ok;
-    }
+    teardown(): Promise<void> | void {}
 }
-
-let client: GotScrapingClient | null = null;
-
-export const getScrapingClient = (): GotScrapingClient => {
-    client ??= new GotScrapingClient();
-    return client;
-};
