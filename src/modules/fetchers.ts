@@ -328,7 +328,7 @@ export const fetchQuestionsIterative = async (options?: IterativeFetchOptions): 
         const { questions: batchQuestions, failed, failures: batchFailures } = await fetchQuestionRange(range, { client, teardown: false });
         questions.push(...batchQuestions);
         if (failed) {
-            options?.logger?.warn(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
+            options?.logger?.info(`Batch failed for range ${range[0]}-${range.at(-1)}, exiting`);
             batchFailed = true;
         } else {
             failures.push(...batchFailures);
