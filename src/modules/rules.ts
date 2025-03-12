@@ -23,8 +23,8 @@ export const extractRules = async (url: string, options?: FetcherOptions): Promi
     for (const match of matches) {
         const name = match.groups?.name;
         const summary = match.groups?.summary;
-        if (name === undefined || summary === undefined || rules.find(r => r.name === name)) {
-            logger?.trace(`Already added rule ${name}, skipping.`)
+        if (name === undefined || summary === undefined || rules.find((r) => r.name === name)) {
+            logger?.trace(`Already added rule ${name}, skipping.`);
             continue;
         }
         logger?.debug("Adding new rule: ", name);
@@ -35,4 +35,4 @@ export const extractRules = async (url: string, options?: FetcherOptions): Promi
     }
     logger?.debug(`Found ${rules.length} rules.`);
     return rules;
-}
+};

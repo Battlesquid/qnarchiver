@@ -73,7 +73,7 @@ export class GotScrapingClient extends FetchClient<GotClientFetchResponse> {
         return response.rawBody.buffer;
     }
 
-    teardown(): Promise<void> | void { }
+    teardown(): Promise<void> | void {}
 
     private async getSessionPool(): Promise<SessionPool> {
         this.sessionPool ??= await SessionPool.open({
@@ -121,5 +121,5 @@ export class GotScrapingClient extends FetchClient<GotClientFetchResponse> {
             session.setCookiesFromResponse(response);
             return { response, badSession: false };
         }
-    };
+    }
 }
