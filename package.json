@@ -10,13 +10,13 @@
     "license": "GPL-3.0",
     "scripts": {
         "build": "tsc",
-        "build:clean": "yarn clean && yarn build",
+        "build:clean": "pnpm clean && pnpm build",
         "test": "vitest",
         "clean": "rimraf dist",
-        "reset": "yarn clean && rimraf node_modules",
+        "reset": "pnpm clean && rimraf node_modules",
         "lint": "eslint src/**",
-        "lint:fix": "yarn lint --fix",
-        "neat": "yarn lint:fix && yarn pretty",
+        "lint:fix": "pnpm lint --fix",
+        "neat": "pnpm lint:fix && pnpm pretty",
         "pretty": "prettier . --write",
         "pretty:check": "prettier . --check"
     },
