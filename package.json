@@ -39,9 +39,15 @@
     },
     "volta": {
         "node": "22.14.0",
-        "yarn": "1.22.22"
+        "pnpm": "10.6.2"
     },
     "files": [
         "dist"
-    ]
+    ],
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "canvas",
+            "esbuild"
+        ]
+    }
 }
