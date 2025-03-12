@@ -4,3 +4,4 @@ export * from "./query";
 export * from "./constants";
 export * from "./extractors";
 export * from "./parsing";
+export * from "./rules";

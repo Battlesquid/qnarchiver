@@ -38,6 +38,43 @@ export class GotScrapingClient extends FetchClient<GotClientFetchResponse> {
         super(logger);
     }
 
+    async fetch(url: string): Promise<GotClientFetchResponse> {
+        const logger = this.logger?.child({ label: "gotScrapingClientFetch" });
+        const pool = await this.getSessionPool();
+
+        const response = await this.getResponse(url, pool);
+        if (response.badSession && this.doSessionRefresh) {
+            logger?.info("Retrying request with new session.");
+            const retry = await this.getResponse(url, pool);
+            return {
+                body: retry.response.body,
+                status: retry.response.statusCode,
+                ok: retry.response.ok,
+                response: retry.response,
+                url: retry.response.url
+            };
+        }
+
+        return {
+            body: response.response.body,
+            status: response.response.statusCode,
+            ok: response.response.ok,
+            response: response.response,
+            url: response.response.url
+        };
+    }
+
+    async buffer(url: string, attempts = 0): Promise<ArrayBufferLike | null> {
+        const pool = await this.getSessionPool();
+        const { response, badSession } = await this.getResponse(url, pool);
+        if (badSession && attempts === 0) {
+            return this.buffer(url, attempts + 1);
+        }
+        return response.rawBody.buffer;
+    }
+
+    teardown(): Promise<void> | void {}
+
     private async getSessionPool(): Promise<SessionPool> {
         this.sessionPool ??= await SessionPool.open({
             maxPoolSize: 100,
@@ -48,63 +85,41 @@ export class GotScrapingClient extends FetchClient<GotClientFetchResponse> {
         return this.sessionPool;
     }
 
-    async fetch(url: string): Promise<GotClientFetchResponse> {
-        const logger = this.logger?.child({ label: "gotScrapingClientFetch" });
-        const pool = await this.getSessionPool();
-
-        const getResponse = async (): Promise<InternalGotClientFetchResponse> => {
-            const session = await pool.getSession();
-            let response: Response<string>;
-            try {
-                response = await gotScraping(url, {
-                    sessionToken: session,
-                    useHeaderGenerator: true,
-                    headerGeneratorOptions: {
-                        browsersListQuery: "> 5%, not dead",
-                        operatingSystems: ["windows", "linux"]
-                    },
-                    responseType: "text",
-                    retry: {
-                        limit: 3,
-                        statusCodes: [403]
-                    },
-                    cookieJar: {
-                        getCookieString: async (url: string) => session.getCookieString(url),
-                        setCookie: async (rawCookie: string, url: string) => session.setCookie(rawCookie, url)
-                    }
-                });
-            } catch (e) {
-                logger?.trace(`Error fetching ${url}, marking session as bad`);
-                session.markBad();
-                throw e;
-            }
-
-            logger?.trace(`Got ${response.statusCode} on ${url}`);
-            const hadBadStatus = session.retireOnBlockedStatusCodes(response.statusCode);
-            if (hadBadStatus) {
-                logger?.warn(`Warning: Bad status on ${url}, retiring`);
-                return { response, badSession: true };
-            } else {
-                session.setCookiesFromResponse(response);
-                return { response, badSession: false };
-            }
-        };
-
-        const response = await getResponse();
-        const {
-            badSession,
-            response: { body, statusCode: status, url: responseURL, ok }
-        } = response;
-        if (badSession && this.doSessionRefresh) {
-            logger?.info("Retrying request with new session.");
-            const retryResponse = await getResponse();
-            const {
-                response: { body, statusCode: status, url, ok }
-            } = retryResponse;
-            return { body, status, ok, response: retryResponse.response, url };
+    private async getResponse(url: string, pool: SessionPool, logger?: Logger): Promise<InternalGotClientFetchResponse> {
+        const session = await pool.getSession();
+        let response: Response<string>;
+        try {
+            response = await gotScraping(url, {
+                sessionToken: session,
+                useHeaderGenerator: true,
+                headerGeneratorOptions: {
+                    browsersListQuery: "> 5%, not dead",
+                    operatingSystems: ["windows", "linux"]
+                },
+                responseType: "text",
+                retry: {
+                    limit: 3,
+                    statusCodes: [403]
+                },
+                cookieJar: {
+                    getCookieString: async (url: string) => session.getCookieString(url),
+                    setCookie: async (rawCookie: string, url: string) => session.setCookie(rawCookie, url)
+                }
+            });
+        } catch (e) {
+            logger?.trace(`Error fetching ${url}, marking session as bad`);
+            session.markBad();
+            throw e;
         }
-        return { body, status, ok, response: response.response, url: responseURL };
-    }
 
-    teardown(): Promise<void> | void {}
+        logger?.trace(`Got ${response.statusCode} on ${url}`);
+        const hadBadStatus = session.retireOnBlockedStatusCodes(response.statusCode);
+        if (hadBadStatus) {
+            logger?.warn(`Warning: Bad status on ${url}, retiring`);
+            return { response, badSession: true };
+        } else {
+            session.setCookiesFromResponse(response);
+            return { response, badSession: false };
+        }
+    }
 }

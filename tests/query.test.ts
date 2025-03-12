@@ -1,4 +1,4 @@
-import { getOldestUnansweredQuestion } from "../src/index";
+import { getOldestUnansweredQuestion } from "../src/modules/query";
 import {
     OLDEST_TEST_QUESTION_UNIQUE_DATES,
     OLDEST_TEST_QUESTIONS_MIXED_OVERLAPPING_DATES,
@@ -8,6 +8,7 @@ import {
     TEST_QUESTIONS_UNIQUE_DATES,
     TEST_SEASON
 } from "./data/test_questions";
+import { describe, expect, it, test } from "vitest";
 
 describe("getOldestUnansweredQuestion", () => {
     it("should get the oldest unanswered question when dates are unique", () => {
