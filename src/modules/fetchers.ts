@@ -76,16 +76,12 @@ export const fetchQuestion = async (url: QnaIdUrl, options?: FetcherOptions): Pr
     const html = await client.getHtml(url);
     if (html === null) {
         if (teardown) {
-            console.log("tearing down");
             await client.teardown();
-            console.log("done tearing down");
         }
         return null;
     }
     if (teardown) {
-        console.log("tearing down");
         await client.teardown();
-        console.log("done tearing down");
     }
     return extractQuestion({ url, html: html.html });
 };
