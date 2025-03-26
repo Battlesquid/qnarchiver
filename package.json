@@ -15,7 +15,7 @@
 		"build": "tsc --build",
 		"clean": "pnpm -r clean",
 		"reset": "pnpm -r reset && rimraf node_modules",
-        "test": "pnpm -r test",
+		"test": "pnpm -r test",
 		"neat": "biome check .",
 		"neat:fix": "biome check . --write"
 	},
