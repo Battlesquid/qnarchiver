@@ -1,0 +1,14 @@
+{
+	"extends": "@qnaplus/typescript-config/base.json",
+	"compilerOptions": {
+		"rootDir": "src",
+		"outDir": "dist"
+	},
+	"references": [
+		{
+			"path": "../scraper"
+		}
+	],
+	"include": ["src"],
+	"exclude": ["node_modules"]
+}
