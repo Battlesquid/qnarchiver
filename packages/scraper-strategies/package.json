@@ -27,8 +27,7 @@
 		"pino-pretty": "catalog:"
 	},
 	"volta": {
-		"node": "22.14.0",
-		"pnpm": "10.6.2"
+		"extends": "../../package.json"
 	},
 	"files": ["dist"]
 }

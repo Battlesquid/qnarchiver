@@ -15,13 +15,13 @@
 		"build": "tsc --build",
 		"clean": "pnpm -r clean",
 		"reset": "pnpm -r reset && rimraf node_modules",
+        "test": "pnpm -r test",
 		"neat": "biome check .",
-		"neat:fix": "biome check . --write",
-        "test:scraper": "pnpm --filter=@qnaplus/scraper run test"
+		"neat:fix": "biome check . --write"
 	},
 	"volta": {
-		"pnpm": "10.5.2",
+		"pnpm": "10.7.0",
 		"node": "22.14.0"
 	},
-	"packageManager": "pnpm@10.5.2"
+	"packageManager": "pnpm@10.7.0"
 }
