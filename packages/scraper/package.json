@@ -1,0 +1,40 @@
+{
+	"name": "@qnaplus/scraper",
+	"version": "3.1.0",
+	"description": "Utility package to scrape questions from the VEX Robotics Q&A.",
+	"main": "dist/index.js",
+	"repository": {
+		"url": "git+ssh://git@github.com/qnaplus/scraper.git"
+	},
+	"author": "Battlesquid <25509915+Battlesquid@users.noreply.github.com>",
+	"license": "GPL-3.0",
+	"scripts": {
+		"build": "tsc",
+		"build:clean": "pnpm clean && pnpm build",
+		"test": "vitest --run",
+		"clean": "rimraf dist tsconfig.tsbuildinfo",
+		"reset": "pnpm clean && rimraf node_modules"
+	},
+	"dependencies": {
+		"@crawlee/core": "^3.11.5",
+		"cheerio": "^1.0.0",
+		"got-scraping": "^4.0.6",
+		"node-pdf-parser": "^1.0.3",
+		"pino": "catalog:"
+	},
+	"devDependencies": {
+		"@qnaplus/typescript-config": "workspace:1.0.0",
+		"pino-pretty": "catalog:",
+		"vitest": "^3.0.8"
+	},
+	"volta": {
+		"extends": "../../package.json"
+	},
+	"files": ["dist"],
+	"exports": {
+		".": {
+			"default": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	}
+}

@@ -1,0 +1,9 @@
+packages:
+  - packages/*
+catalog:
+  pino: ^9.6.0
+  pino-pretty: ^11.2.2
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - canvas
+  - esbuild
