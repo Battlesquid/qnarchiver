@@ -14,7 +14,7 @@ import { FetchClient, type FetchClientResponse } from "@qnaplus/scraper";
 export class CurlImpersonateScrapingClient extends FetchClient<FetchClientResponse> {
 	async ping(url: string): Promise<boolean> {
 		let ok: boolean | undefined = undefined;
-		this.forEachPreset(async (preset) => {
+		await this.forEachPreset(async (preset) => {
 			if (ok !== undefined) {
 				return;
 			}
@@ -38,7 +38,7 @@ export class CurlImpersonateScrapingClient extends FetchClient<FetchClientRespon
 			status: -1,
 			url: "",
 		};
-		this.forEachPreset(async (preset) => {
+		await this.forEachPreset(async (preset) => {
 			if (!badStatusCodes.includes(latestResponse.status)) {
 				return;
 			}
