@@ -14,7 +14,7 @@ import { FetchClient, type FetchClientResponse } from "@qnaplus/scraper";
 export class CurlImpersonateScrapingClient extends FetchClient<FetchClientResponse> {
 	async ping(url: string): Promise<boolean> {
 		let ok: boolean | undefined = undefined;
-		this.forEachPreset(async preset => {
+		this.forEachPreset(async (preset) => {
 			if (ok !== undefined) {
 				return;
 			}
@@ -38,7 +38,7 @@ export class CurlImpersonateScrapingClient extends FetchClient<FetchClientRespon
 			status: -1,
 			url: "",
 		};
-		this.forEachPreset(async preset => {
+		this.forEachPreset(async (preset) => {
 			if (!badStatusCodes.includes(latestResponse.status)) {
 				return;
 			}
@@ -60,7 +60,7 @@ export class CurlImpersonateScrapingClient extends FetchClient<FetchClientRespon
 					`Request did not return an accepted response code (preset: ${preset.name} v${preset.version})`,
 				);
 			}
-		})
+		});
 		// TODO: when a bad status code is not recieved, cache the preset that was used.
 		// Continue using that preset until failure, then search again for another working preset.
 		if (badStatusCodes.includes(latestResponse.status)) {
@@ -76,9 +76,11 @@ export class CurlImpersonateScrapingClient extends FetchClient<FetchClientRespon
 		return null;
 	}
 
-	teardown(): Promise<void> | void { }
+	teardown(): Promise<void> | void {}
 
-	private async forEachPreset(cb: (preset: RequestPreset<BrowserType>) => void | Promise<void>) {
+	private async forEachPreset(
+		cb: (preset: RequestPreset<BrowserType>) => void | Promise<void>,
+	) {
 		const browsers = getCompatibleBrowsers();
 		for (const browser of browsers) {
 			for (const version of Object.keys(BrowserPresets[browser.name])) {
