@@ -61,8 +61,8 @@ importers:
   packages/scraper-strategies:
     dependencies:
       '@qnaplus/node-curl-impersonate':
-        specifier: ^1.0.0
-        version: 1.0.1
+        specifier: ^1.0.2
+        version: 1.0.2
       '@qnaplus/scraper':
         specifier: workspace:*
         version: link:../scraper
@@ -369,8 +369,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@qnaplus/node-curl-impersonate@1.0.1':
-    resolution: {integrity: sha512-nAX3/EpTAYpx4IyNJ+GAYhSENd6n/JRQBOG2LuTK3uz/0bYZjRC/J7vQMPpXQ00VumkjCUriMFpNbJw+f47pFQ==}
+  '@qnaplus/node-curl-impersonate@1.0.2':
+    resolution: {integrity: sha512-f4Lzcc7rJEzWsEnxpHhS9M5zb1+GsYEwDx1Wkcp4bzsujehye1tec6OkH+ImPBGLIGvJ/lDxtynACFLALuGNJw==}
 
   '@rollup/rollup-android-arm-eabi@4.35.0':
     resolution: {integrity: sha512-uYQ2WfPaqz5QtVgMxfN6NpLD+no0MYHDBywl7itPYd3K5TjjSghNKmX8ic9S8NU8w81NVhJv/XojcHptRly7qQ==}
@@ -2179,7 +2179,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@qnaplus/node-curl-impersonate@1.0.1': {}
+  '@qnaplus/node-curl-impersonate@1.0.2': {}
 
   '@rollup/rollup-android-arm-eabi@4.35.0':
     optional: true
