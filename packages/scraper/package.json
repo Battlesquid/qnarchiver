@@ -1,6 +1,6 @@
 {
 	"name": "@qnaplus/scraper",
-	"version": "3.1.0",
+	"version": "3.1.1",
 	"description": "Utility package to scrape questions from the VEX Robotics Q&A.",
 	"main": "dist/index.js",
 	"repository": {
@@ -19,13 +19,13 @@
 		"@crawlee/core": "^3.11.5",
 		"cheerio": "^1.0.0",
 		"got-scraping": "^4.0.6",
-		"node-pdf-parser": "^1.0.3",
+		"node-pdf-parser": "^1.0.7",
 		"pino": "catalog:"
 	},
 	"devDependencies": {
 		"@qnaplus/typescript-config": "workspace:1.0.0",
 		"pino-pretty": "catalog:",
-		"vitest": "^3.0.8"
+		"vitest": "^3.1.2"
 	},
 	"volta": {
 		"extends": "../../package.json"
