@@ -19,7 +19,7 @@
 		"@crawlee/core": "^3.11.5",
 		"cheerio": "^1.0.0",
 		"got-scraping": "^4.0.6",
-		"node-pdf-parser": "^1.0.3",
+		"node-pdf-parser": "^1.0.7",
 		"pino": "catalog:"
 	},
 	"devDependencies": {

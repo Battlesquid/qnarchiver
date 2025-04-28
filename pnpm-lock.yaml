@@ -42,8 +42,8 @@ importers:
         specifier: ^4.0.6
         version: 4.1.1
       node-pdf-parser:
-        specifier: ^1.0.3
-        version: 1.0.3
+        specifier: ^1.0.7
+        version: 1.0.7
       pino:
         specifier: 'catalog:'
         version: 9.6.0
@@ -192,7 +192,6 @@ packages:
 
   '@effect/schema@0.75.5':
     resolution: {integrity: sha512-TQInulTVCuF+9EIbJpyLP6dvxbQJMphrnRqgexm/Ze39rSjfhJuufF7XvU3SxTgg3HnL7B/kpORTJbHhlE6thw==}
-    deprecated: this package has been merged into the main effect package
     peerDependencies:
       effect: ^3.9.2
 
@@ -1205,7 +1204,6 @@ packages:
 
   lodash.isequal@4.5.0:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
-    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
@@ -1329,8 +1327,8 @@ packages:
       encoding:
         optional: true
 
-  node-pdf-parser@1.0.3:
-    resolution: {integrity: sha512-LnvqloLp5A2rsR4Ht8Sci5xK0HDrWq8A1bJ1ZjL/bmnmcD3zbjX8AItrEovoadpyLrV5R9XKtE0CoTipcJuQKg==}
+  node-pdf-parser@1.0.7:
+    resolution: {integrity: sha512-PlyL1R6NdekpxCiRZDMJA5RLiYrEDY+DkrkSV266C8GpypQCryA4kwzJPj/qkiie61LoiwgpyJdR/qT3b5PYPg==}
 
   node-releases@2.0.19:
     resolution: {integrity: sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==}
@@ -3154,7 +3152,7 @@ snapshots:
       whatwg-url: 5.0.0
     optional: true
 
-  node-pdf-parser@1.0.3:
+  node-pdf-parser@1.0.7:
     dependencies:
       pdfjs-dist: 3.11.174
     transitivePeerDependencies:
